@@ -15,6 +15,16 @@ dist/PLAST ALUM - Gestion des Paiements Fournisseurs/PLAST ALUM - Gestion des Pa
 
 Le script détecte `main.py` comme fichier d'entrée, ajoute les dossiers `app/assets`, `app/styles`, `app/translations` et le fichier `config.py` au bundle PyInstaller. Si `app/assets/icons/app.ico` existe, il sera utilisé comme icône de l'exécutable.
 
+Les icônes sources de l'application sont dans :
+
+```text
+app/assets/logo.png
+app/assets/icons/app.png
+app/assets/icons/app.ico
+```
+
+Le fichier `.ico` contient les tailles Windows 16, 32, 48, 64, 128 et 256 px.
+
 La base de données locale est créée au premier lancement dans :
 
 ```text
@@ -41,6 +51,12 @@ Pour vérifier sans créer le raccourci :
 
 ```powershell
 python create_desktop_shortcut.py --dry-run
+```
+
+Si Windows affiche encore l'ancienne icône après un rebuild ou une recréation du raccourci, exécutez :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\refresh_icon_cache.ps1
 ```
 
 ## Build avancé avec fichier spec

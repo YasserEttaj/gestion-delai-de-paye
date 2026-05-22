@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from PyQt6.QtCore import QSettings, Qt
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -21,7 +21,7 @@ from app.services.settings_service import SettingsService
 from app.services.translation_service import TranslationService
 from app.styles.themes import apply_theme
 from app.ui.widgets.modern_button import ModernButton
-from config import APP_NAME, COMPANY_NAME, LOGO_PATH, MIN_HEIGHT, MIN_WIDTH
+from config import APP_ICON_PATH, APP_NAME, COMPANY_NAME, LOGO_PATH, MIN_HEIGHT, MIN_WIDTH
 
 
 class LoginWindow(QWidget):
@@ -33,6 +33,8 @@ class LoginWindow(QWidget):
         self.theme = self.settings.get("default_theme", "dark")
         self.setObjectName("LoginRoot")
         self.setWindowTitle(APP_NAME)
+        if APP_ICON_PATH.exists():
+            self.setWindowIcon(QIcon(str(APP_ICON_PATH)))
         self.setMinimumSize(920, 620)
         apply_theme(QApplication.instance(), self.theme)
         self._build_ui()

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QHBoxLayout, QMainWindow, QMenu, QMessageBox, QStackedWidget, QStatusBar, QVBoxLayout, QWidget
 
 from app.services.auth_service import AuthService
@@ -19,7 +20,7 @@ from app.ui.pages.suppliers_page import SuppliersPage
 from app.ui.pages.users_page import UsersPage
 from app.ui.widgets.sidebar import Sidebar
 from app.ui.widgets.topbar import Topbar
-from config import APP_NAME, MIN_HEIGHT, MIN_WIDTH, ROLE_ADMIN
+from config import APP_ICON_PATH, APP_NAME, MIN_HEIGHT, MIN_WIDTH, ROLE_ADMIN
 
 
 class MainWindow(QMainWindow):
@@ -40,6 +41,8 @@ class MainWindow(QMainWindow):
         self.theme = theme
         self.translator = TranslationService(language)
         self.setWindowTitle(APP_NAME)
+        if APP_ICON_PATH.exists():
+            self.setWindowIcon(QIcon(str(APP_ICON_PATH)))
         self.setMinimumSize(MIN_WIDTH, MIN_HEIGHT)
         self.pages: dict[str, QWidget] = {}
         self.allowed_pages = self._allowed_pages()
