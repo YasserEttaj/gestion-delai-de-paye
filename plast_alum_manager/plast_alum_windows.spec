@@ -19,6 +19,7 @@ datas = [
 hiddenimports = [
     "matplotlib.backends.backend_qtagg",
     "app.models.user_model",
+    "app.models.convention_model",
     "app.models.supplier_model",
     "app.models.invoice_model",
     "app.models.payment_model",

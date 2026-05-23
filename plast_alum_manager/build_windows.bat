@@ -54,6 +54,7 @@ python -m PyInstaller ^
     --add-data "%PROJECT_DIR%app\translations\ar.json;app\translations" ^
     --hidden-import "matplotlib.backends.backend_qtagg" ^
     --hidden-import "app.models.user_model" ^
+    --hidden-import "app.models.convention_model" ^
     --hidden-import "app.models.supplier_model" ^
     --hidden-import "app.models.invoice_model" ^
     --hidden-import "app.models.payment_model" ^
