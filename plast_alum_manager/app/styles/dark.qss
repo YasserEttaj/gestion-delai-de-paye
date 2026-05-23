@@ -371,6 +371,12 @@ QPushButton[role="secondary"]:hover {
     border-color: #475569;
 }
 
+QPushButton#LanguageSwitchButton {
+    padding: 8px 8px;
+    font-weight: 800;
+    border-color: #3B4A63;
+}
+
 QPushButton[role="ghost"]:hover {
     background: #111D31;
     color: #E2E8F0;

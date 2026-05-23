@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from PyQt6.QtCore import QTimer, pyqtSignal
-from PyQt6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, QWidget
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QWidget
 
 from app.ui.icons import (
     BELL_ICON,
@@ -30,6 +30,7 @@ class Topbar(QWidget):
         "fr": {
             "global_search": "Recherche globale",
             "language": "Langue",
+            "switch_language": "Changer de langue",
             "change_theme": "Changer de thème",
             "light_mode": "Mode clair",
             "dark_mode": "Mode sombre",
@@ -38,6 +39,7 @@ class Topbar(QWidget):
         "en": {
             "global_search": "Global search",
             "language": "Language",
+            "switch_language": "Switch language",
             "change_theme": "Change theme",
             "light_mode": "Light mode",
             "dark_mode": "Dark mode",
@@ -48,6 +50,7 @@ class Topbar(QWidget):
     def __init__(self, user_name: str, parent=None) -> None:
         super().__init__(parent)
         self.ui_language = "fr"
+        self.current_language = "fr"
         self.notification_count = 0
         self.setObjectName("Topbar")
         self.setMinimumHeight(76)
@@ -69,13 +72,12 @@ class Topbar(QWidget):
         self.search_input.textChanged.connect(self.search_changed.emit)
         layout.addWidget(self.search_input)
 
-        self.language_combo = QComboBox()
-        self.language_combo.setMinimumWidth(70)
-        self.language_combo.addItem(app_icon(LANGUAGE_ICON, COLOR_MUTED_DARK, 16), "FR", "fr")
-        self.language_combo.addItem(app_icon(LANGUAGE_ICON, COLOR_MUTED_DARK, 16), "EN", "en")
-        self.language_combo.setToolTip(self._text("language"))
-        self.language_combo.currentIndexChanged.connect(lambda: self.language_changed.emit(self.language_combo.currentData()))
-        layout.addWidget(self.language_combo)
+        self.language_button = ModernButton("FR", "secondary", icon_name=LANGUAGE_ICON, tooltip=self._text("switch_language"))
+        self.language_button.setObjectName("LanguageSwitchButton")
+        self.language_button.setFixedWidth(74)
+        self.language_button.setMinimumHeight(38)
+        self.language_button.clicked.connect(self._toggle_language)
+        layout.addWidget(self.language_button)
 
         self.theme_button = ModernButton(self._text("light_mode"), "secondary", icon_name=SUN_ICON, tooltip=self._text("change_theme"))
         self.theme_button.clicked.connect(self._toggle_theme)
@@ -116,6 +118,11 @@ class Topbar(QWidget):
         self._refresh_icons()
         self.theme_changed.emit(self.current_theme)
 
+    def _toggle_language(self) -> None:
+        language = "en" if self.current_language == "fr" else "fr"
+        self.set_language(language)
+        self.language_changed.emit(language)
+
     def set_title(self, title: str) -> None:
         self.title_label.setText(title)
 
@@ -129,16 +136,13 @@ class Topbar(QWidget):
         self._refresh_icons()
 
     def set_language(self, language: str) -> None:
-        index = self.language_combo.findData(language)
-        if index >= 0:
-            self.language_combo.blockSignals(True)
-            self.language_combo.setCurrentIndex(index)
-            self.language_combo.blockSignals(False)
+        self.current_language = "en" if language == "en" else "fr"
+        self.language_button.setText(self.current_language.upper())
 
     def set_ui_language(self, language: str) -> None:
         self.ui_language = "en" if language == "en" else "fr"
         self.search_input.setPlaceholderText(self._text("global_search"))
-        self.language_combo.setToolTip(self._text("language"))
+        self.language_button.setToolTip(self._text("switch_language"))
         self.theme_button.setToolTip(self._text("change_theme"))
         self.set_notification_count(self.notification_count)
         self._refresh_icons()
@@ -149,8 +153,7 @@ class Topbar(QWidget):
     def _refresh_icons(self) -> None:
         color = self._icon_color()
         self.search_action.setIcon(app_icon(SEARCH_ICON, color, 16))
-        for index in range(self.language_combo.count()):
-            self.language_combo.setItemIcon(index, app_icon(LANGUAGE_ICON, color, 16))
+        self.language_button.set_app_icon(LANGUAGE_ICON, color, 17)
         theme_icon = MOON_ICON if self.current_theme == "light" else SUN_ICON
         self.theme_button.setText(self._text("dark_mode") if self.current_theme == "light" else self._text("light_mode"))
         self.theme_button.set_app_icon(theme_icon, color, 17)

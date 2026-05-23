@@ -50,17 +50,18 @@ class SettingsPage(QWidget):
         card = QFrame()
         card.setObjectName("SettingsCard")
         card.setProperty("card", True)
-        card.setMaximumWidth(1180)
+        card.setMinimumWidth(900)
+        card.setMaximumWidth(1320)
         card_layout = QVBoxLayout(card)
-        card_layout.setContentsMargins(18, 18, 18, 18)
-        card_layout.setSpacing(16)
+        card_layout.setContentsMargins(22, 20, 22, 20)
+        card_layout.setSpacing(18)
 
         form = QFormLayout()
         form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         form.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         form.setFormAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        form.setHorizontalSpacing(28)
-        form.setVerticalSpacing(12)
+        form.setHorizontalSpacing(34)
+        form.setVerticalSpacing(13)
         self.company_name = QLineEdit()
         self.app_title = QLineEdit()
         self.language = QComboBox()
@@ -110,7 +111,7 @@ class SettingsPage(QWidget):
             self.urgent_max,
             self.critical_min,
         ):
-            field.setMaximumWidth(820)
+            field.setMaximumWidth(940)
             field.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         for spin in (
@@ -126,7 +127,7 @@ class SettingsPage(QWidget):
             spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
 
         logo_widget = QWidget()
-        logo_widget.setMaximumWidth(820)
+        logo_widget.setMaximumWidth(940)
         logo_row = QHBoxLayout(logo_widget)
         logo_row.setContentsMargins(0, 0, 0, 0)
         logo_row.setSpacing(10)
@@ -169,7 +170,7 @@ class SettingsPage(QWidget):
         actions.addWidget(restore)
         actions.addStretch(1)
         card_layout.addLayout(actions)
-        content.addWidget(card, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        content.addWidget(card, 0, Qt.AlignmentFlag.AlignTop)
         content.addStretch(1)
         layout.addWidget(scroll, 1)
         self.load()
