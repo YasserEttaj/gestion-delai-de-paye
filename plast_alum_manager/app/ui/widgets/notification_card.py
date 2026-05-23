@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QVBoxLayout
+from PyQt6.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel, QVBoxLayout
 
 from app.ui.icons import PAID_ICON, WARNING_ICON, app_icon
 
@@ -24,9 +24,25 @@ class NotificationCard(QFrame):
 
     def __init__(self, title: str, message: str, level: str = "info", parent=None) -> None:
         super().__init__(parent)
-        self.setProperty("card", True)
+        self.setObjectName("NotificationCard")
         color = self.COLORS.get(level, "#2563EB")
-        self.setStyleSheet(f"border-left: 4px solid {color};")
+        theme = QApplication.instance().property("theme") if QApplication.instance() else "dark"
+        if theme == "light":
+            background = "#FFFFFF"
+            border = "#DDE5F0"
+        else:
+            background = "#111D31"
+            border = "#2F3D55"
+        self.setStyleSheet(
+            f"""
+            QFrame#NotificationCard {{
+                background: {background};
+                border: 1px solid {border};
+                border-left: 4px solid {color};
+                border-radius: 9px;
+            }}
+            """
+        )
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 10, 12, 10)
         header = QHBoxLayout()

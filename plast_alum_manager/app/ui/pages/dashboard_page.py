@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtWidgets import QApplication, QFrame, QGridLayout, QHBoxLayout, QLabel, QScrollArea, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QApplication, QFrame, QGridLayout, QHBoxLayout, QLabel, QLayout, QScrollArea, QSizePolicy, QVBoxLayout, QWidget
 
 from app.services.activity_service import ActivityService
 from app.services.backup_service import BackupService
@@ -131,6 +131,7 @@ class DashboardPage(QWidget):
 
         if getattr(self.user, "can_manage_conventions", False):
             self.conventions_panel = QFrame()
+            self.conventions_panel.setObjectName("DashboardConventionsPanel")
             self.conventions_panel.setProperty("card", True)
             self.conventions_layout = QVBoxLayout(self.conventions_panel)
             self.conventions_layout.setContentsMargins(16, 14, 16, 14)
@@ -169,13 +170,18 @@ class DashboardPage(QWidget):
             self._render_conventions(convention_stats)
         self._render_activity()
 
-    def _clear_layout(self, layout: QVBoxLayout) -> None:
+    def _clear_layout(self, layout: QLayout) -> None:
         while layout.count():
             item = layout.takeAt(0)
             widget = item.widget()
             if widget:
                 widget.setParent(None)
                 widget.deleteLater()
+                continue
+            child_layout = item.layout()
+            if child_layout:
+                self._clear_layout(child_layout)
+                child_layout.deleteLater()
 
     def _render_charts(self, stats: dict) -> None:
         self._clear_layout(self.chart_layout)
@@ -250,9 +256,13 @@ class DashboardPage(QWidget):
         self._clear_layout(self.conventions_layout)
         top = QHBoxLayout()
         title = QLabel("Conventions et échéances")
+        title.setObjectName("DashboardSectionTitle")
         title.setStyleSheet("font-size:16px; font-weight:800;")
         badge = QLabel(f"{stats.get('urgent', 0)} notification(s)")
-        badge.setStyleSheet("background:#DC2626; color:white; border-radius:10px; padding:4px 10px; font-weight:800;")
+        badge.setObjectName("DashboardDangerBadge")
+        badge.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        badge.setMinimumHeight(32)
+        badge.setStyleSheet("background:#DC2626; color:white; border-radius:12px; padding:5px 14px; font-weight:800;")
         top.addWidget(title)
         top.addStretch(1)
         top.addWidget(badge)

@@ -210,6 +210,12 @@ QFrame[card="true"], QWidget[card="true"] {
     border-radius: 10px;
 }
 
+QFrame#DashboardConventionsPanel {
+    background: #FFFFFF;
+    border: 1px solid #DDE5F0;
+    border-radius: 10px;
+}
+
 QFrame#LoginCard {
     background: #FFFFFF;
     border: 1px solid #DDE5F0;
