@@ -8,6 +8,7 @@ from app.services.excel_service import ExcelService
 from app.services.pdf_service import PdfService
 from app.services.report_service import ReportService
 from app.services.supplier_service import SupplierService
+from app.ui.icons import EXCEL_ICON, PDF_ICON, PRINT_ICON
 from app.ui.widgets.confirm_dialog import ConfirmDialog
 from app.ui.widgets.modern_button import ModernButton
 from app.ui.widgets.modern_table import ModernTable
@@ -28,13 +29,13 @@ class ReportsPage(QWidget):
         title.setProperty("heading", True)
         top.addWidget(title)
         top.addStretch(1)
-        excel = ModernButton("Export Excel", "success")
+        excel = ModernButton("Export Excel", "success", icon_name=EXCEL_ICON)
         excel.setEnabled(self.user.can_import_export)
         excel.clicked.connect(self.export_excel)
-        pdf = ModernButton("Export PDF", "danger")
+        pdf = ModernButton("Export PDF", "danger", icon_name=PDF_ICON)
         pdf.setEnabled(self.user.can_import_export)
         pdf.clicked.connect(self.export_pdf)
-        print_button = ModernButton("Imprimer", "secondary")
+        print_button = ModernButton("Imprimer", "secondary", icon_name=PRINT_ICON)
         print_button.setEnabled(self.user.can_import_export)
         print_button.clicked.connect(self.print_report)
         top.addWidget(excel)

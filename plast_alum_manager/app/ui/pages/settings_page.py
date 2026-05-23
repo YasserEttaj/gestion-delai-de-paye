@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import (
 
 from app.services.backup_service import BackupService
 from app.services.settings_service import SettingsService
+from app.ui.icons import BACKUP_ICON, FOLDER_OPEN_ICON, RESET_ICON, SAVE_ICON
 from app.ui.widgets.confirm_dialog import ConfirmDialog
 from app.ui.widgets.modern_button import ModernButton
 from config import USER_LOGO_PATH
@@ -100,7 +101,7 @@ class SettingsPage(QWidget):
 
         logo_row = QHBoxLayout()
         logo_row.addWidget(self.logo_path, 1)
-        logo_btn = ModernButton("Choisir", "secondary")
+        logo_btn = ModernButton("Choisir", "secondary", icon_name=FOLDER_OPEN_ICON)
         logo_btn.clicked.connect(self.choose_logo)
         logo_row.addWidget(logo_btn)
 
@@ -124,12 +125,12 @@ class SettingsPage(QWidget):
         layout.addLayout(form)
 
         actions = QHBoxLayout()
-        save = ModernButton("Enregistrer paramètres", "primary")
+        save = ModernButton("Enregistrer paramètres", "primary", icon_name=SAVE_ICON)
         save.setEnabled(self.user.can_manage_users)
         save.clicked.connect(self.save)
-        backup = ModernButton("Créer sauvegarde", "success")
+        backup = ModernButton("Créer sauvegarde", "success", icon_name=BACKUP_ICON)
         backup.clicked.connect(self.create_backup)
-        restore = ModernButton("Restaurer sauvegarde", "danger")
+        restore = ModernButton("Restaurer sauvegarde", "danger", icon_name=RESET_ICON)
         restore.setEnabled(self.user.can_manage_users)
         restore.clicked.connect(self.restore_backup)
         actions.addWidget(save)

@@ -4,6 +4,7 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QFileDialog, QHBoxLayout, QHeaderView, QLabel, QVBoxLayout, QWidget
 
 from app.services.excel_service import ExcelService
+from app.ui.icons import EXCEL_ICON, IMPORT_ICON
 from app.ui.widgets.confirm_dialog import ConfirmDialog
 from app.ui.widgets.modern_button import ModernButton
 from app.ui.widgets.modern_table import ModernTable
@@ -23,10 +24,10 @@ class ImportExcelPage(QWidget):
         title.setProperty("heading", True)
         top.addWidget(title)
         top.addStretch(1)
-        choose = ModernButton("Choisir fichier Excel", "primary")
+        choose = ModernButton("Choisir fichier Excel", "primary", icon_name=EXCEL_ICON)
         choose.setEnabled(self.user.can_import_export)
         choose.clicked.connect(self.choose_file)
-        self.import_button = ModernButton("Importer les lignes valides", "success")
+        self.import_button = ModernButton("Importer les lignes valides", "success", icon_name=IMPORT_ICON)
         self.import_button.setEnabled(False)
         self.import_button.clicked.connect(self.import_rows)
         top.addWidget(choose)

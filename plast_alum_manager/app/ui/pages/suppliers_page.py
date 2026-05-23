@@ -6,6 +6,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QFileDialog, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QComboBox, QVBoxLayout, QWidget
 
 from app.services.supplier_service import SupplierService
+from app.ui.icons import DELETE_ICON, EDIT_ICON, EXPORT_ICON, INVOICES_ICON, VIEW_ICON
 from app.ui.pages.supplier_form_page import SupplierFormDialog
 from app.ui.widgets.confirm_dialog import ConfirmDialog
 from app.ui.widgets.modern_button import ModernButton
@@ -31,11 +32,11 @@ class SuppliersPage(QWidget):
         title.setProperty("heading", True)
         top.addWidget(title)
         top.addStretch(1)
-        self.add_button = ModernButton("Ajouter fournisseur", "primary")
+        self.add_button = ModernButton("Ajouter fournisseur", "primary", icon_name="supplier-add")
         self.add_button.clicked.connect(self.add_supplier)
         self.add_button.setEnabled(self.user.can_edit)
         top.addWidget(self.add_button)
-        export = ModernButton("Exporter fournisseurs", "secondary")
+        export = ModernButton("Exporter fournisseurs", "secondary", icon_name=EXPORT_ICON)
         export.setEnabled(self.user.can_import_export)
         export.clicked.connect(self.export_suppliers)
         top.addWidget(export)
@@ -124,15 +125,15 @@ class SuppliersPage(QWidget):
             action_box = QWidget()
             h = QHBoxLayout(action_box)
             h.setContentsMargins(0, 0, 0, 0)
-            view = ModernButton("Voir", "secondary")
+            view = ModernButton("Voir", "secondary", icon_name=VIEW_ICON, tooltip="Voir le fournisseur")
             view.clicked.connect(lambda _=False, sid=supplier.id: self.view_supplier(sid))
-            edit = ModernButton("Éditer", "secondary")
+            edit = ModernButton("Éditer", "secondary", icon_name=EDIT_ICON, tooltip="Modifier le fournisseur")
             edit.setEnabled(self.user.can_edit)
             edit.clicked.connect(lambda _=False, sid=supplier.id: self.edit_supplier(sid))
-            delete = ModernButton("Supprimer", "danger")
+            delete = ModernButton("Supprimer", "danger", icon_name=DELETE_ICON, tooltip="Supprimer le fournisseur")
             delete.setEnabled(self.user.can_delete)
             delete.clicked.connect(lambda _=False, sid=supplier.id: self.delete_supplier(sid))
-            invoices = ModernButton("Factures", "secondary")
+            invoices = ModernButton("Factures", "secondary", icon_name=INVOICES_ICON, tooltip="Voir les factures")
             invoices.clicked.connect(lambda _=False, sid=supplier.id: self.supplier_invoices_requested.emit(sid))
             for button in (view, edit, invoices, delete):
                 h.addWidget(button)

@@ -395,6 +395,12 @@ QTableWidget::item {
     padding: 8px;
 }
 
+QTableWidget QPushButton {
+    min-height: 20px;
+    padding: 5px 9px;
+    border-radius: 7px;
+}
+
 QScrollBar:horizontal {
     background: #F8FAFC;
     height: 10px;

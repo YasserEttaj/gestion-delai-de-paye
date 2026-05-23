@@ -21,6 +21,7 @@ from app.ui.pages.reports_page import ReportsPage
 from app.ui.pages.settings_page import SettingsPage
 from app.ui.pages.suppliers_page import SuppliersPage
 from app.ui.pages.users_page import UsersPage
+from app.ui.widgets.modern_button import ModernButton
 from app.ui.widgets.sidebar import Sidebar
 from app.ui.widgets.topbar import Topbar
 from config import APP_ICON_PATH, APP_NAME, MIN_HEIGHT, MIN_WIDTH, ROLE_ADMIN
@@ -168,6 +169,10 @@ class MainWindow(QMainWindow):
 
         self.theme = theme
         apply_theme(QApplication.instance(), theme)
+        for button in self.findChildren(ModernButton):
+            button.refresh_icon_theme()
+        self.topbar.set_theme(theme)
+        self.sidebar.refresh_icons()
         SettingsService.set_many({"default_theme": theme}, self.user.id)
 
     def change_language(self, language: str) -> None:

@@ -22,6 +22,7 @@ from PyQt6.QtWidgets import (
 from app.models.invoice_model import Invoice
 from app.services.deadline_service import DeadlineService
 from app.services.supplier_service import SupplierService
+from app.ui.icons import ATTACHMENT_ICON, COLOR_MUTED_LIGHT, COLOR_PRIMARY, SAVE_ICON, UNPAID_ICON, app_icon
 from app.ui.widgets.modern_button import ModernButton
 from config import PAYMENT_METHODS, STATUS_LABELS_FR, STATUS_PAID, STATUS_PARTIAL, STATUS_UNPAID
 
@@ -99,7 +100,7 @@ class InvoiceFormDialog(QDialog):
 
         attachment_row = QHBoxLayout()
         self.attachment_label = QLabel("Aucune pièce jointe")
-        browse = ModernButton("Choisir fichier", "secondary")
+        browse = ModernButton("Choisir fichier", "secondary", icon_name=ATTACHMENT_ICON)
         browse.clicked.connect(self._choose_attachment)
         attachment_row.addWidget(self.attachment_label, 1)
         attachment_row.addWidget(browse)
@@ -128,7 +129,9 @@ class InvoiceFormDialog(QDialog):
         layout.addWidget(self.error)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         buttons.button(QDialogButtonBox.StandardButton.Save).setText("Enregistrer")
+        buttons.button(QDialogButtonBox.StandardButton.Save).setIcon(app_icon(SAVE_ICON, COLOR_PRIMARY, 16))
         buttons.button(QDialogButtonBox.StandardButton.Cancel).setText("Annuler")
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setIcon(app_icon(UNPAID_ICON, COLOR_MUTED_LIGHT, 16))
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
@@ -244,7 +247,9 @@ class PaymentDialog(QDialog):
         layout.addLayout(form)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         buttons.button(QDialogButtonBox.StandardButton.Save).setText("Enregistrer")
+        buttons.button(QDialogButtonBox.StandardButton.Save).setIcon(app_icon(SAVE_ICON, COLOR_PRIMARY, 16))
         buttons.button(QDialogButtonBox.StandardButton.Cancel).setText("Annuler")
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setIcon(app_icon(UNPAID_ICON, COLOR_MUTED_LIGHT, 16))
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)

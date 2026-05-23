@@ -16,6 +16,17 @@ from PyQt6.QtWidgets import (
 
 from app.services.invoice_service import InvoiceService
 from app.services.supplier_service import SupplierService
+from app.ui.icons import (
+    ATTACHMENT_ICON,
+    DELETE_ICON,
+    EDIT_ICON,
+    INVOICE_ADD_ICON,
+    PAID_ICON,
+    PARTIAL_ICON,
+    UNPAID_ICON,
+    VIEW_ICON,
+    WARNING_ICON,
+)
 from app.ui.pages.invoice_form_page import InvoiceFormDialog, PaymentDialog
 from app.ui.widgets.confirm_dialog import ConfirmDialog
 from app.ui.widgets.modern_button import ModernButton
@@ -39,7 +50,7 @@ class InvoicesPage(QWidget):
         title.setProperty("heading", True)
         top.addWidget(title)
         top.addStretch(1)
-        add = ModernButton("Ajouter facture", "primary")
+        add = ModernButton("Ajouter facture", "primary", icon_name=INVOICE_ADD_ICON)
         add.setEnabled(self.user.can_edit)
         add.clicked.connect(self.add_invoice)
         top.addWidget(add)
@@ -156,6 +167,8 @@ class InvoicesPage(QWidget):
             return
         self.table.setRowCount(len(page_rows))
         status_colors = {STATUS_PAID: "#22C55E", STATUS_UNPAID: "#EF4444", STATUS_PARTIAL: "#F59E0B"}
+        status_icons = {STATUS_PAID: PAID_ICON, STATUS_UNPAID: UNPAID_ICON, STATUS_PARTIAL: PARTIAL_ICON}
+        deadline_icons = {"normal": PAID_ICON, "attention": WARNING_ICON, "urgent": WARNING_ICON, "critical": WARNING_ICON}
         for row_idx, row in enumerate(page_rows):
             invoice = row["invoice"]
             values = [
@@ -168,31 +181,31 @@ class InvoicesPage(QWidget):
             ]
             for col, value in enumerate(values):
                 self.table.set_text_item(row_idx, col, value, align_right=col in {0, 5})
-            self.table.setCellWidget(row_idx, 6, self.table.badge(STATUS_LABELS_FR.get(invoice.status, invoice.status), status_colors.get(invoice.status, "#64748B")))
+            self.table.setCellWidget(row_idx, 6, self.table.badge(STATUS_LABELS_FR.get(invoice.status, invoice.status), status_colors.get(invoice.status, "#64748B"), status_icons.get(invoice.status)))
             self.table.set_text_item(row_idx, 7, invoice.payment_date or "")
             self.table.set_text_item(row_idx, 8, row["deadline"].days, align_right=True)
-            badge = self.table.badge(row["deadline"].label, row["deadline"].color)
+            badge = self.table.badge(row["deadline"].label, row["deadline"].color, deadline_icons.get(row["deadline"].category))
             badge.setToolTip(row["deadline"].tooltip)
             self.table.setCellWidget(row_idx, 9, badge)
             self.table.set_text_item(row_idx, 10, "Oui" if invoice.attachment_path else "Non")
             action_box = QWidget()
             h = QHBoxLayout(action_box)
             h.setContentsMargins(0, 0, 0, 0)
-            view = ModernButton("Voir", "secondary")
+            view = ModernButton("Voir", "secondary", icon_name=VIEW_ICON, tooltip="Voir la facture")
             view.clicked.connect(lambda _=False, iid=invoice.id: self.view_invoice(iid))
-            edit = ModernButton("Éditer", "secondary")
+            edit = ModernButton("Éditer", "secondary", icon_name=EDIT_ICON, tooltip="Modifier la facture")
             edit.setEnabled(self.user.can_edit)
             edit.clicked.connect(lambda _=False, iid=invoice.id: self.edit_invoice(iid))
-            pay = ModernButton("Payer", "success")
+            pay = ModernButton("Payer", "success", icon_name=PAID_ICON, tooltip="Enregistrer un paiement")
             pay.setEnabled(self.user.can_edit and invoice.status != STATUS_PAID)
             pay.clicked.connect(lambda _=False, iid=invoice.id: self.add_payment(iid))
-            unpaid = ModernButton("Impayé", "secondary")
+            unpaid = ModernButton("Impayé", "secondary", icon_name=UNPAID_ICON, tooltip="Marquer comme non payée")
             unpaid.setEnabled(self.user.can_edit and invoice.status != STATUS_UNPAID)
             unpaid.clicked.connect(lambda _=False, iid=invoice.id: self.mark_unpaid(iid))
-            attach = ModernButton("PJ", "secondary")
+            attach = ModernButton("PJ", "secondary", icon_name=ATTACHMENT_ICON, tooltip="Ouvrir la pièce jointe")
             attach.setEnabled(bool(invoice.attachment_path))
             attach.clicked.connect(lambda _=False, path=invoice.attachment_path: self.open_attachment(path))
-            delete = ModernButton("Supprimer", "danger")
+            delete = ModernButton("Supprimer", "danger", icon_name=DELETE_ICON, tooltip="Supprimer la facture")
             delete.setEnabled(self.user.can_delete)
             delete.clicked.connect(lambda _=False, iid=invoice.id: self.delete_invoice(iid))
             for button in (view, edit, pay, unpaid, attach, delete):

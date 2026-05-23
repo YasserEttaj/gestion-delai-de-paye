@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFo
 
 from app.models.user_model import User
 from app.services.user_service import UserService
+from app.ui.icons import COLOR_MUTED_LIGHT, COLOR_PRIMARY, DELETE_ICON, EDIT_ICON, SAVE_ICON, UNPAID_ICON, USERS_ICON, app_icon
 from app.ui.widgets.confirm_dialog import ConfirmDialog
 from app.ui.widgets.modern_button import ModernButton
 from app.ui.widgets.modern_table import ModernTable
@@ -41,7 +42,9 @@ class UserDialog(QDialog):
         layout.addWidget(self.error)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         buttons.button(QDialogButtonBox.StandardButton.Save).setText("Enregistrer")
+        buttons.button(QDialogButtonBox.StandardButton.Save).setIcon(app_icon(SAVE_ICON, COLOR_PRIMARY, 16))
         buttons.button(QDialogButtonBox.StandardButton.Cancel).setText("Annuler")
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setIcon(app_icon(UNPAID_ICON, COLOR_MUTED_LIGHT, 16))
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
@@ -96,7 +99,7 @@ class UsersPage(QWidget):
         self.search.setPlaceholderText("Recherche utilisateur")
         self.search.textChanged.connect(self.refresh)
         top.addWidget(self.search)
-        add = ModernButton("Ajouter utilisateur", "primary")
+        add = ModernButton("Ajouter utilisateur", "primary", icon_name=USERS_ICON)
         add.clicked.connect(self.add_user)
         top.addWidget(add)
         layout.addLayout(top)
@@ -124,9 +127,9 @@ class UsersPage(QWidget):
             box = QWidget()
             h = QHBoxLayout(box)
             h.setContentsMargins(0, 0, 0, 0)
-            edit = ModernButton("Éditer", "secondary")
+            edit = ModernButton("Éditer", "secondary", icon_name=EDIT_ICON, tooltip="Modifier l'utilisateur")
             edit.clicked.connect(lambda _=False, uid=user.id: self.edit_user(uid))
-            delete = ModernButton("Supprimer", "danger")
+            delete = ModernButton("Supprimer", "danger", icon_name=DELETE_ICON, tooltip="Supprimer l'utilisateur")
             delete.setEnabled(user.id != self.user.id)
             delete.clicked.connect(lambda _=False, uid=user.id: self.delete_user(uid))
             h.addWidget(edit)

@@ -23,6 +23,7 @@ from app.services.auth_service import AuthService
 from app.services.settings_service import SettingsService
 from app.services.translation_service import TranslationService
 from app.styles.themes import apply_theme
+from app.ui.icons import MOON_ICON, SUN_ICON
 from app.ui.widgets.modern_button import ModernButton
 from config import APP_ICON_PATH, APP_NAME, AUTH_IMAGE_PATH, COMPANY_NAME
 
@@ -303,6 +304,7 @@ class LoginWindow(QWidget):
         self.login_tab.setText(tr("login"))
         self.register_tab.setText("Créer un compte")
         self.theme_button.setText("Mode sombre" if self.theme == "light" else "Mode clair")
+        self.theme_button.set_app_icon(MOON_ICON if self.theme == "light" else SUN_ICON)
         for field, button in [
             (self.login_password, self.login_password_toggle),
             (self.register_password, self.register_password_toggle),

@@ -32,6 +32,7 @@ from app.services.convention_service import (
     DEADLINE_OPTIONS,
     ConventionService,
 )
+from app.ui.icons import CALENDAR_ALERT_ICON, COLOR_MUTED_LIGHT, COLOR_PRIMARY, CRITICAL_ICON, DELETE_ICON, EDIT_ICON, EXCEL_ICON, INVOICE_ADD_ICON, PAID_ICON, PDF_ICON, RESET_ICON, SAVE_ICON, UNPAID_ICON, WARNING_ICON, app_icon
 from app.ui.widgets.confirm_dialog import ConfirmDialog
 from app.ui.widgets.modern_button import ModernButton
 from app.ui.widgets.modern_table import ModernTable
@@ -105,7 +106,9 @@ class ConventionDialog(QDialog):
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         buttons.button(QDialogButtonBox.StandardButton.Save).setText("Enregistrer")
+        buttons.button(QDialogButtonBox.StandardButton.Save).setIcon(app_icon(SAVE_ICON, COLOR_PRIMARY, 16))
         buttons.button(QDialogButtonBox.StandardButton.Cancel).setText("Annuler")
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setIcon(app_icon(UNPAID_ICON, COLOR_MUTED_LIGHT, 16))
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
@@ -196,13 +199,13 @@ class ConventionsPage(QWidget):
         title.setProperty("heading", True)
         top.addWidget(title)
         top.addStretch(1)
-        self.recalculate_button = ModernButton("Recalculer", "secondary")
+        self.recalculate_button = ModernButton("Recalculer", "secondary", icon_name=RESET_ICON, tooltip="Recalculer les échéances")
         self.recalculate_button.clicked.connect(self.recalculate)
-        self.export_excel_button = ModernButton("Export Excel", "success")
+        self.export_excel_button = ModernButton("Export Excel", "success", icon_name=EXCEL_ICON)
         self.export_excel_button.clicked.connect(self.export_excel)
-        self.export_pdf_button = ModernButton("Export PDF", "danger")
+        self.export_pdf_button = ModernButton("Export PDF", "danger", icon_name=PDF_ICON)
         self.export_pdf_button.clicked.connect(self.export_pdf)
-        self.add_button = ModernButton("Ajouter convention", "primary")
+        self.add_button = ModernButton("Ajouter convention", "primary", icon_name=INVOICE_ADD_ICON)
         self.add_button.clicked.connect(self.add_convention)
         for button in (self.recalculate_button, self.export_excel_button, self.export_pdf_button, self.add_button):
             top.addWidget(button)
@@ -216,11 +219,11 @@ class ConventionsPage(QWidget):
         cards = QGridLayout()
         cards.setHorizontalSpacing(14)
         self.cards = {
-            "total": StatCard("Total conventions", "0", "", "C", "#2563EB"),
-            "active": StatCard("Active", "0", "", "✓", "#22C55E"),
-            "warning": StatCard("Near deadline", "0", "≤ 15 jours", "!", "#F59E0B"),
-            "expired": StatCard("Expired", "0", "", "×", "#DC2626"),
-            "completed": StatCard("Completed", "0", "", "✓", "#64748B"),
+            "total": StatCard("Total conventions", "0", "", CALENDAR_ALERT_ICON, "#2563EB"),
+            "active": StatCard("Active", "0", "", PAID_ICON, "#22C55E"),
+            "warning": StatCard("Near deadline", "0", "≤ 15 jours", WARNING_ICON, "#F59E0B"),
+            "expired": StatCard("Expired", "0", "", CRITICAL_ICON, "#DC2626"),
+            "completed": StatCard("Completed", "0", "", PAID_ICON, "#64748B"),
         }
         for idx, card in enumerate(self.cards.values()):
             cards.addWidget(card, 0, idx)
@@ -311,12 +314,12 @@ class ConventionsPage(QWidget):
             actions = QWidget()
             h = QHBoxLayout(actions)
             h.setContentsMargins(0, 0, 0, 0)
-            edit = ModernButton("Éditer", "secondary")
+            edit = ModernButton("Éditer", "secondary", icon_name=EDIT_ICON, tooltip="Modifier la convention")
             edit.clicked.connect(lambda _=False, cid=convention.id: self.edit_convention(cid))
-            complete = ModernButton("Terminer", "success")
+            complete = ModernButton("Terminer", "success", icon_name=PAID_ICON, tooltip="Marquer comme terminée")
             complete.setEnabled(convention.status != CONVENTION_STATUS_COMPLETED)
             complete.clicked.connect(lambda _=False, cid=convention.id: self.mark_completed(cid))
-            delete = ModernButton("Supprimer", "danger")
+            delete = ModernButton("Supprimer", "danger", icon_name=DELETE_ICON, tooltip="Supprimer la convention")
             delete.clicked.connect(lambda _=False, cid=convention.id: self.delete_convention(cid))
             for button in (edit, complete, delete):
                 h.addWidget(button)

@@ -3,6 +3,7 @@ from __future__ import annotations
 from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit, QVBoxLayout
 
 from app.models.supplier_model import Supplier
+from app.ui.icons import COLOR_MUTED_LIGHT, COLOR_PRIMARY, SAVE_ICON, UNPAID_ICON, app_icon
 
 
 class SupplierFormDialog(QDialog):
@@ -52,7 +53,9 @@ class SupplierFormDialog(QDialog):
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
         buttons.button(QDialogButtonBox.StandardButton.Save).setText("Enregistrer")
+        buttons.button(QDialogButtonBox.StandardButton.Save).setIcon(app_icon(SAVE_ICON, COLOR_PRIMARY, 16))
         buttons.button(QDialogButtonBox.StandardButton.Cancel).setText("Annuler")
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setIcon(app_icon(UNPAID_ICON, COLOR_MUTED_LIGHT, 16))
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)

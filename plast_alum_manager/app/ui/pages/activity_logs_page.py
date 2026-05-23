@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, QVBoxLayo
 
 from app.services.activity_service import ActivityService
 from app.services.user_service import UserService
+from app.ui.icons import EXPORT_ICON
 from app.ui.widgets.confirm_dialog import ConfirmDialog
 from app.ui.widgets.modern_button import ModernButton
 from app.ui.widgets.modern_table import ModernTable
@@ -24,7 +25,7 @@ class ActivityLogsPage(QWidget):
         title.setProperty("heading", True)
         top.addWidget(title)
         top.addStretch(1)
-        export = ModernButton("Exporter logs", "secondary")
+        export = ModernButton("Exporter logs", "secondary", icon_name=EXPORT_ICON)
         export.clicked.connect(self.export_logs)
         top.addWidget(export)
         layout.addLayout(top)

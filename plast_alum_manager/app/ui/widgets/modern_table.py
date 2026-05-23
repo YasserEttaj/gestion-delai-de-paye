@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QLabel, QTableWidget, QTableWidgetItem
+from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem
+
+from app.ui.icons import COLOR_WHITE, icon_pixmap
 
 
 class ModernTable(QTableWidget):
@@ -27,11 +29,23 @@ class ModernTable(QTableWidget):
             item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         self.setItem(row, column, item)
 
-    def badge(self, text: str, color: str) -> QLabel:
+    def badge(self, text: str, color: str, icon_name: str | None = None) -> QFrame:
+        badge = QFrame()
+        badge.setStyleSheet(f"background:{color}; color:white; border-radius:10px;")
+        layout = QHBoxLayout(badge)
+        layout.setContentsMargins(8, 3, 8, 3)
+        layout.setSpacing(5)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        if icon_name:
+            icon = QLabel()
+            icon.setFixedSize(14, 14)
+            icon.setPixmap(icon_pixmap(icon_name, COLOR_WHITE, 14))
+            layout.addWidget(icon)
         label = QLabel(text)
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        label.setStyleSheet(f"background:{color}; color:white; border-radius:10px; padding:4px 8px; font-weight:700;")
-        return label
+        label.setStyleSheet("color:white; font-weight:700;")
+        layout.addWidget(label)
+        return badge
 
     def empty(self, message: str, columns: int) -> None:
         self.show_empty(message, columns)

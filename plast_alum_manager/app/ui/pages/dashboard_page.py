@@ -8,6 +8,22 @@ from app.services.backup_service import BackupService
 from app.services.convention_service import CONVENTION_STATUS_LABELS, ConventionService
 from app.services.invoice_service import InvoiceService
 from app.services.report_service import ReportService
+from app.ui.icons import (
+    BACKUP_ICON,
+    CALENDAR_ALERT_ICON,
+    CRITICAL_ICON,
+    EXCEL_ICON,
+    EXPORT_ICON,
+    INVOICE_ADD_ICON,
+    INVOICES_ICON,
+    LATE_ICON,
+    PAID_ICON,
+    PARTIAL_ICON,
+    SUPPLIERS_ICON,
+    UNPAID_ICON,
+    WALLET_CHECK_ICON,
+    WALLET_ICON,
+)
 from app.ui.widgets.modern_button import ModernButton
 from app.ui.widgets.notification_card import NotificationCard
 from app.ui.widgets.stat_card import StatCard
@@ -40,7 +56,7 @@ class DashboardPage(QWidget):
         greeting.setProperty("heading", True)
         hero.addWidget(greeting)
         hero.addStretch(1)
-        backup = ModernButton("Sauvegarder base", "secondary")
+        backup = ModernButton("Sauvegarder base", "secondary", icon_name=BACKUP_ICON, tooltip="Créer une sauvegarde de la base")
         backup.setEnabled(self.user.can_manage_users)
         backup.clicked.connect(self._backup)
         hero.addWidget(backup)
@@ -52,18 +68,18 @@ class DashboardPage(QWidget):
         for column in range(3):
             grid.setColumnStretch(column, 1)
         card_defs = [
-            ("total_suppliers", "Fournisseurs", "◇", "#2563EB"),
-            ("total_invoices", "Factures", "▤", "#0EA5E9"),
-            ("paid_count", "Payées", "✓", "#22C55E"),
-            ("unpaid_count", "Non payées", "!", "#EF4444"),
-            ("partial_count", "Partielles", "◐", "#F59E0B"),
-            ("late_count", "En retard", "⏱", "#DC2626"),
-            ("unpaid_amount", "Montant impayé", "MAD", "#7F1D1D"),
-            ("paid_amount", "Montant payé", "MAD", "#16A34A"),
-            ("critical_count", "Critiques +60j", "60", "#000000"),
+            ("total_suppliers", "Fournisseurs", SUPPLIERS_ICON, "#2563EB"),
+            ("total_invoices", "Factures", INVOICES_ICON, "#0EA5E9"),
+            ("paid_count", "Payées", PAID_ICON, "#22C55E"),
+            ("unpaid_count", "Non payées", UNPAID_ICON, "#EF4444"),
+            ("partial_count", "Partielles", PARTIAL_ICON, "#F59E0B"),
+            ("late_count", "En retard", LATE_ICON, "#DC2626"),
+            ("unpaid_amount", "Montant impayé", WALLET_ICON, "#7F1D1D"),
+            ("paid_amount", "Montant payé", WALLET_CHECK_ICON, "#16A34A"),
+            ("critical_count", "Critiques +60j", CRITICAL_ICON, "#111827"),
         ]
         if getattr(self.user, "can_manage_conventions", False):
-            card_defs.append(("convention_urgent", "Conventions urgentes", "C", "#DC2626"))
+            card_defs.append(("convention_urgent", "Conventions urgentes", CALENDAR_ALERT_ICON, "#DC2626"))
         for idx, (key, title, icon, accent) in enumerate(card_defs):
             card = StatCard(title, "0", "", icon, accent)
             self.cards[key] = card
@@ -75,12 +91,12 @@ class DashboardPage(QWidget):
         actions = QHBoxLayout(actions_panel)
         actions.setContentsMargins(14, 12, 14, 12)
         actions.setSpacing(12)
-        for page, label in [
-            ("suppliers:add", "Ajouter fournisseur"),
-            ("invoice_form", "Ajouter facture"),
-            ("conventions", "Conventions"),
-            ("import_excel", "Importer Excel"),
-            ("reports", "Exporter rapport"),
+        for page, label, icon in [
+            ("suppliers:add", "Ajouter fournisseur", SUPPLIERS_ICON),
+            ("invoice_form", "Ajouter facture", INVOICE_ADD_ICON),
+            ("conventions", "Conventions", CALENDAR_ALERT_ICON),
+            ("import_excel", "Importer Excel", EXCEL_ICON),
+            ("reports", "Exporter rapport", EXPORT_ICON),
         ]:
             if page in {"suppliers:add", "invoice_form"} and not self.user.can_edit:
                 continue
@@ -88,7 +104,7 @@ class DashboardPage(QWidget):
                 continue
             if page == "import_excel" and not self.user.can_import_export:
                 continue
-            button = ModernButton(label, "primary" if page == "invoice_form" else "secondary")
+            button = ModernButton(label, "primary" if page == "invoice_form" else "secondary", icon_name=icon)
             button.clicked.connect(lambda _checked=False, target=page: self.quick_action_requested.emit(target))
             actions.addWidget(button)
         actions.addStretch(1)
