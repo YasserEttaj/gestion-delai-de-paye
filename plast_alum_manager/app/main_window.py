@@ -39,6 +39,18 @@ class MainWindow(QMainWindow):
         "settings": "Paramètres",
         "activity_logs": "Journal d'activité",
     }
+    TITLE_KEYS = {
+        "dashboard": "dashboard_title",
+        "suppliers": "suppliers_title",
+        "invoices": "invoices_title",
+        "invoice_form": "add_invoice",
+        "conventions": "conventions_title",
+        "reports": "reports_title",
+        "import_excel": "import_excel_title",
+        "users": "users_title",
+        "settings": "settings_title",
+        "activity_logs": "activity_logs_title",
+    }
 
     def __init__(self, user, theme: str = "dark", language: str = "fr") -> None:
         super().__init__()
@@ -46,6 +58,7 @@ class MainWindow(QMainWindow):
         AuthSession.start(user)
         self.theme = theme
         self.translator = TranslationService(language)
+        self.current_page = "dashboard"
         self.setWindowTitle(APP_NAME)
         if APP_ICON_PATH.exists():
             self.setWindowIcon(QIcon(str(APP_ICON_PATH)))
@@ -89,6 +102,7 @@ class MainWindow(QMainWindow):
         self.topbar = Topbar(self.user.full_name)
         self.topbar.set_theme(self.theme)
         self.topbar.set_language(self.translator.language)
+        self.topbar.set_ui_language(self.translator.language)
         self.topbar.search_changed.connect(self.global_search)
         self.topbar.theme_changed.connect(self.change_theme)
         self.topbar.language_changed.connect(self.change_language)
@@ -118,7 +132,7 @@ class MainWindow(QMainWindow):
         for key, page in self.pages.items():
             self.stack.addWidget(page)
         self.setStatusBar(QStatusBar())
-        self.statusBar().showMessage("Prêt")
+        self.statusBar().showMessage(self.translator.text("ready"))
 
     def _center(self) -> None:
         screen = self.screen().availableGeometry()
@@ -140,20 +154,30 @@ class MainWindow(QMainWindow):
             self.pages["invoices"].add_invoice()
             return
         if page == "conventions" and not getattr(self.user, "can_manage_conventions", False):
-            QMessageBox.warning(self, "Accès refusé", "Cette page est réservée aux utilisateurs autorisés.")
+            QMessageBox.warning(
+                self,
+                self.translator.text("access_denied"),
+                self.translator.text("authorized_users_only"),
+            )
             return
         if page in {"users", "settings", "activity_logs"} and not self.user.can_manage_users:
-            QMessageBox.warning(self, "Accès refusé", "Cette page est réservée aux administrateurs.")
+            QMessageBox.warning(
+                self,
+                self.translator.text("access_denied"),
+                self.translator.text("admins_only"),
+            )
             return
         if page not in self.pages:
             return
+        self.current_page = page
         self.stack.setCurrentWidget(self.pages[page])
         self.sidebar.set_active(page)
-        self.topbar.set_title(self.TITLES.get(page, page))
+        self.topbar.set_title(self._translated_title(page))
         refresh = getattr(self.pages[page], "refresh", None)
         if callable(refresh):
             refresh()
         self.refresh_notifications()
+        self.retranslate_ui()
 
     def open_supplier_invoices(self, supplier_id: int) -> None:
         self.navigate("invoices")
@@ -179,7 +203,25 @@ class MainWindow(QMainWindow):
         self.translator.set_language(language)
         SettingsService.set_many({"default_language": self.translator.language}, self.user.id)
         self.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-        QMessageBox.information(self, "Langue", "La langue est mise à jour. Certains libellés seront complets après redémarrage.")
+        self.retranslate_ui()
+        QMessageBox.information(
+            self,
+            self.translator.text("settings_default_language"),
+            self.translator.text("language_updated"),
+        )
+
+    def _translated_title(self, page: str) -> str:
+        return self.translator.text(self.TITLE_KEYS.get(page, page), self.TITLES.get(page, page))
+
+    def retranslate_ui(self) -> None:
+        self.topbar.set_language(self.translator.language)
+        self.topbar.set_ui_language(self.translator.language)
+        self.topbar.set_title(self._translated_title(getattr(self, "current_page", "dashboard")))
+        self.translator.apply_to_widget(self.sidebar)
+        for page in self.pages.values():
+            self.translator.apply_to_widget(page)
+        if self.statusBar():
+            self.statusBar().showMessage(self.translator.text("ready"))
 
     def refresh_notifications(self) -> None:
         self.notifications = InvoiceService.notifications()
@@ -191,7 +233,7 @@ class MainWindow(QMainWindow):
         self.refresh_notifications()
         menu = QMenu(self)
         if not self.notifications:
-            menu.addAction("Aucune notification")
+            menu.addAction(self.translator.text("notifications_none"))
         for note in self.notifications[:20]:
             action = menu.addAction(f"{note['title']} - {note['message']}")
             invoice_id = note.get("invoice_id")

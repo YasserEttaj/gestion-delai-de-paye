@@ -33,7 +33,12 @@ class CoverImagePanel(QFrame):
         super().__init__(parent)
         self.setObjectName("AuthImagePanel")
         self.pixmap = QPixmap(str(image_path)) if image_path.exists() else QPixmap()
+        self.caption = "Gestion sécurisée des fournisseurs, factures et paiements."
         self.setMinimumWidth(430)
+
+    def set_caption(self, text: str) -> None:
+        self.caption = text
+        self.update()
 
     def paintEvent(self, event) -> None:
         super().paintEvent(event)
@@ -83,7 +88,7 @@ class CoverImagePanel(QFrame):
         painter.drawText(
             QRectF(32, self.height() - 86, self.width() - 64, 54),
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop,
-            "Gestion sécurisée des fournisseurs, factures et paiements.",
+            self.caption,
         )
 
 
@@ -275,11 +280,11 @@ class LoginWindow(QWidget):
 
     def _update_header(self, mode: str) -> None:
         if mode == "register":
-            self.title.setText("Créer un compte")
-            self.subtitle.setText("Ouvrez un accès utilisateur standard pour consulter les données de l'application.")
+            self.title.setText(self.translator.text("create_account"))
+            self.subtitle.setText(self.translator.text("register_subtitle"))
         else:
-            self.title.setText("Connexion")
-            self.subtitle.setText("Connectez-vous avec votre nom d'utilisateur ou votre email.")
+            self.title.setText(self.translator.tr("login"))
+            self.subtitle.setText(self.translator.text("login_subtitle"))
 
     def _set_message(self, label: QLabel, text: str, success: bool = False) -> None:
         label.setText(text)
@@ -289,21 +294,24 @@ class LoginWindow(QWidget):
 
     def _retranslate(self) -> None:
         tr = self.translator.tr
+        text = self.translator.text
+        self.image_panel.set_caption(text("auth_cover_caption"))
+        self.eyebrow.setText(text("secure_access"))
         self.login_identifier.setPlaceholderText(tr("username"))
         self.login_password.setPlaceholderText(tr("password"))
-        self.register_full_name.setPlaceholderText("Nom complet *")
-        self.register_username.setPlaceholderText("Nom d'utilisateur *")
-        self.register_email.setPlaceholderText("Email *")
-        self.register_phone.setPlaceholderText("Téléphone (optionnel)")
-        self.register_password.setPlaceholderText("Mot de passe *")
-        self.register_confirm.setPlaceholderText("Confirmer le mot de passe *")
+        self.register_full_name.setPlaceholderText(text("full_name_required"))
+        self.register_username.setPlaceholderText(text("username_required"))
+        self.register_email.setPlaceholderText(text("email_required"))
+        self.register_phone.setPlaceholderText(text("phone_optional"))
+        self.register_password.setPlaceholderText(text("password_required"))
+        self.register_confirm.setPlaceholderText(text("confirm_password"))
         self.remember.setText(tr("remember_me"))
-        self.forgot_button.setText("Mot de passe oublié ?")
+        self.forgot_button.setText(text("forgot_password"))
         self.login_button.setText(tr("login"))
-        self.register_button.setText("Créer le compte")
+        self.register_button.setText(text("create_account"))
         self.login_tab.setText(tr("login"))
-        self.register_tab.setText("Créer un compte")
-        self.theme_button.setText("Mode sombre" if self.theme == "light" else "Mode clair")
+        self.register_tab.setText(text("create_account"))
+        self.theme_button.setText(text("dark_mode") if self.theme == "light" else text("light_mode"))
         self.theme_button.set_app_icon(MOON_ICON if self.theme == "light" else SUN_ICON)
         for field, button in [
             (self.login_password, self.login_password_toggle),
@@ -337,8 +345,8 @@ class LoginWindow(QWidget):
     def forgot_password(self) -> None:
         QMessageBox.information(
             self,
-            "Mot de passe oublié",
-            "La récupération automatique sera disponible dans une prochaine version. Contactez un administrateur pour réinitialiser le mot de passe.",
+            self.translator.text("forgot_password_title"),
+            self.translator.text("forgot_password_message"),
         )
 
     def login(self) -> None:
@@ -348,7 +356,7 @@ class LoginWindow(QWidget):
             self._set_message(self.login_message, error)
             return
         if not user:
-            self._set_message(self.login_message, "Connexion impossible.")
+            self._set_message(self.login_message, self.translator.text("login_failed"))
             return
         AuthSession.start(user)
         if self.remember.isChecked():
@@ -358,8 +366,8 @@ class LoginWindow(QWidget):
         if default_password:
             QMessageBox.warning(
                 self,
-                "Sécurité",
-                "Le compte admin utilise encore un mot de passe par défaut. Changez-le depuis la page Utilisateurs.",
+                self.translator.text("security"),
+                self.translator.text("default_password_warning"),
             )
         self.main_window = MainWindow(user, self.theme, self.translator.language)
         self.main_window.show()
@@ -397,4 +405,4 @@ class LoginWindow(QWidget):
         ):
             field.clear()
         self.set_mode("login")
-        self._set_message(self.login_message, "Compte créé avec succès. Vous pouvez vous connecter.", success=True)
+        self._set_message(self.login_message, self.translator.text("account_created"), success=True)
