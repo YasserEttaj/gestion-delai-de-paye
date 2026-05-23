@@ -415,8 +415,16 @@ QTableWidget::item {
 }
 
 QTableWidget QPushButton {
-    min-height: 20px;
-    padding: 5px 9px;
+    min-height: 28px;
+    max-height: 28px;
+    padding: 4px 8px;
+    border-radius: 7px;
+}
+
+QPushButton[compact="true"] {
+    min-height: 28px;
+    max-height: 28px;
+    padding: 4px 8px;
     border-radius: 7px;
 }
 
