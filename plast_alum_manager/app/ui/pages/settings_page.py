@@ -65,7 +65,7 @@ class SettingsPage(QWidget):
         self.app_title = QLineEdit()
         self.language = QComboBox()
         self.language.addItem("Français", "fr")
-        self.language.addItem("العربية", "ar")
+        self.language.addItem("English", "en")
         self.theme = QComboBox()
         self.theme.addItem("Sombre", "dark")
         self.theme.addItem("Clair", "light")

@@ -156,7 +156,7 @@ class LoginWindow(QWidget):
         bottom = QHBoxLayout()
         self.language = QComboBox()
         self.language.addItem("FR", "fr")
-        self.language.addItem("AR", "ar")
+        self.language.addItem("EN", "en")
         self.language.setCurrentIndex(max(self.language.findData(self.translator.language), 0))
         self.language.currentIndexChanged.connect(self.change_language)
         self.theme_button = ModernButton("", "secondary")
@@ -311,8 +311,7 @@ class LoginWindow(QWidget):
             (self.register_confirm, self.confirm_password_toggle),
         ]:
             button.setText(tr("show_password") if field.echoMode() == QLineEdit.EchoMode.Password else tr("hide_password"))
-        direction = Qt.LayoutDirection.RightToLeft if self.translator.language == "ar" else Qt.LayoutDirection.LeftToRight
-        self.setLayoutDirection(direction)
+        self.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         self._update_header("register" if self.stack.currentIndex() == 1 else "login")
 
     def toggle_password(self, field: QLineEdit, button: ModernButton) -> None:

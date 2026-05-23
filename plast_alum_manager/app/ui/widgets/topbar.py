@@ -51,7 +51,7 @@ class Topbar(QWidget):
         self.language_combo = QComboBox()
         self.language_combo.setMinimumWidth(70)
         self.language_combo.addItem(app_icon(LANGUAGE_ICON, COLOR_MUTED_DARK, 16), "FR", "fr")
-        self.language_combo.addItem(app_icon(LANGUAGE_ICON, COLOR_MUTED_DARK, 16), "AR", "ar")
+        self.language_combo.addItem(app_icon(LANGUAGE_ICON, COLOR_MUTED_DARK, 16), "EN", "en")
         self.language_combo.setToolTip("Langue")
         self.language_combo.currentIndexChanged.connect(lambda: self.language_changed.emit(self.language_combo.currentData()))
         layout.addWidget(self.language_combo)

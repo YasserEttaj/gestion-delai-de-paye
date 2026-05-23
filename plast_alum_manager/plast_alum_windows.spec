@@ -13,7 +13,7 @@ datas = [
     (str(project_dir / "app" / "styles" / "dark.qss"), "app/styles"),
     (str(project_dir / "app" / "styles" / "light.qss"), "app/styles"),
     (str(project_dir / "app" / "translations" / "fr.json"), "app/translations"),
-    (str(project_dir / "app" / "translations" / "ar.json"), "app/translations"),
+    (str(project_dir / "app" / "translations" / "en.json"), "app/translations"),
 ]
 
 hiddenimports = [

@@ -177,9 +177,9 @@ class MainWindow(QMainWindow):
 
     def change_language(self, language: str) -> None:
         self.translator.set_language(language)
-        SettingsService.set_many({"default_language": language}, self.user.id)
-        self.setLayoutDirection(Qt.LayoutDirection.RightToLeft if language == "ar" else Qt.LayoutDirection.LeftToRight)
-        QMessageBox.information(self, "Langue", "La direction de l'interface est mise à jour. Certains libellés seront complets après redémarrage.")
+        SettingsService.set_many({"default_language": self.translator.language}, self.user.id)
+        self.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
+        QMessageBox.information(self, "Langue", "La langue est mise à jour. Certains libellés seront complets après redémarrage.")
 
     def refresh_notifications(self) -> None:
         self.notifications = InvoiceService.notifications()

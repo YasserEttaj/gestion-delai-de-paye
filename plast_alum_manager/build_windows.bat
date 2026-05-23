@@ -66,7 +66,7 @@ python -m PyInstaller ^
     --add-data "%PROJECT_DIR%app\styles\dark.qss;app\styles" ^
     --add-data "%PROJECT_DIR%app\styles\light.qss;app\styles" ^
     --add-data "%PROJECT_DIR%app\translations\fr.json;app\translations" ^
-    --add-data "%PROJECT_DIR%app\translations\ar.json;app\translations" ^
+    --add-data "%PROJECT_DIR%app\translations\en.json;app\translations" ^
     --hidden-import "matplotlib.backends.backend_qtagg" ^
     --hidden-import "app.models.user_model" ^
     --hidden-import "app.models.convention_model" ^
