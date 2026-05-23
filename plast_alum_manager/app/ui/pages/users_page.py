@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from PyQt6.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout, QHeaderView, QLabel, QLineEdit, QVBoxLayout, QWidget
 
 from app.models.user_model import User
 from app.services.user_service import UserService
@@ -105,6 +105,21 @@ class UsersPage(QWidget):
         layout.addLayout(top)
         self.table = ModernTable()
         self.table.set_headers(["ID", "Nom", "Utilisateur", "Email", "Téléphone", "Rôle", "Actif", "Dernière connexion", "Actions"])
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
+        header.setStretchLastSection(True)
+        for column, width in {
+            0: 54,
+            1: 170,
+            2: 130,
+            3: 190,
+            4: 125,
+            5: 90,
+            6: 70,
+            7: 150,
+            8: 190,
+        }.items():
+            self.table.setColumnWidth(column, width)
         layout.addWidget(self.table, 1)
         self.refresh()
 
@@ -126,15 +141,20 @@ class UsersPage(QWidget):
                 self.table.set_text_item(row, col, value, align_right=col == 0)
             box = QWidget()
             h = QHBoxLayout(box)
-            h.setContentsMargins(0, 0, 0, 0)
-            edit = ModernButton("Éditer", "secondary", icon_name=EDIT_ICON, tooltip="Modifier l'utilisateur")
+            h.setContentsMargins(5, 4, 5, 4)
+            h.setSpacing(6)
+            edit = ModernButton("Éditer", "secondary", icon_name=EDIT_ICON, tooltip="Modifier l'utilisateur", compact=True)
+            edit.setFixedWidth(78)
             edit.clicked.connect(lambda _=False, uid=user.id: self.edit_user(uid))
-            delete = ModernButton("Supprimer", "danger", icon_name=DELETE_ICON, tooltip="Supprimer l'utilisateur")
+            delete = ModernButton("Sup.", "danger", icon_name=DELETE_ICON, tooltip="Supprimer l'utilisateur", compact=True)
+            delete.setFixedWidth(78)
             delete.setEnabled(user.id != self.user.id)
             delete.clicked.connect(lambda _=False, uid=user.id: self.delete_user(uid))
             h.addWidget(edit)
             h.addWidget(delete)
+            h.addStretch(1)
             self.table.setCellWidget(row, 8, box)
+            self.table.setRowHeight(row, 48)
 
     def add_user(self) -> None:
         dialog = UserDialog(parent=self)

@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
+    QAbstractSpinBox,
     QCheckBox,
     QComboBox,
     QFileDialog,
     QFormLayout,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
-    QAbstractSpinBox,
+    QScrollArea,
+    QSizePolicy,
     QSpinBox,
     QVBoxLayout,
     QWidget,
@@ -33,8 +37,29 @@ class SettingsPage(QWidget):
         title.setProperty("heading", True)
         layout.addWidget(title)
 
+        scroll = QScrollArea()
+        scroll.setObjectName("PageScroll")
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        container = QWidget()
+        scroll.setWidget(container)
+        content = QVBoxLayout(container)
+        content.setContentsMargins(0, 0, 0, 0)
+        content.setSpacing(0)
+
+        card = QFrame()
+        card.setObjectName("SettingsCard")
+        card.setProperty("card", True)
+        card.setMaximumWidth(1180)
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(18, 18, 18, 18)
+        card_layout.setSpacing(16)
+
         form = QFormLayout()
-        form.setHorizontalSpacing(34)
+        form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
+        form.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        form.setFormAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        form.setHorizontalSpacing(28)
         form.setVerticalSpacing(12)
         self.company_name = QLineEdit()
         self.app_title = QLineEdit()
@@ -85,7 +110,8 @@ class SettingsPage(QWidget):
             self.urgent_max,
             self.critical_min,
         ):
-            field.setMaximumWidth(860)
+            field.setMaximumWidth(820)
+            field.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         for spin in (
             self.keep,
@@ -99,9 +125,14 @@ class SettingsPage(QWidget):
         ):
             spin.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
 
-        logo_row = QHBoxLayout()
+        logo_widget = QWidget()
+        logo_widget.setMaximumWidth(820)
+        logo_row = QHBoxLayout(logo_widget)
+        logo_row.setContentsMargins(0, 0, 0, 0)
+        logo_row.setSpacing(10)
         logo_row.addWidget(self.logo_path, 1)
         logo_btn = ModernButton("Choisir", "secondary", icon_name=FOLDER_OPEN_ICON)
+        logo_btn.setFixedWidth(150)
         logo_btn.clicked.connect(self.choose_logo)
         logo_row.addWidget(logo_btn)
 
@@ -111,7 +142,7 @@ class SettingsPage(QWidget):
         form.addRow("Thème par défaut", self.theme)
         form.addRow("Devise", self.currency)
         form.addRow("Format date", self.date_format)
-        form.addRow("Logo", logo_row)
+        form.addRow("Logo", logo_widget)
         form.addRow("Dossier sauvegarde", self.backup_folder)
         form.addRow("", self.auto_backup)
         form.addRow("Sauvegardes à garder", self.keep)
@@ -122,7 +153,7 @@ class SettingsPage(QWidget):
         form.addRow("Urgent min", self.urgent_min)
         form.addRow("Urgent max", self.urgent_max)
         form.addRow("Critique min", self.critical_min)
-        layout.addLayout(form)
+        card_layout.addLayout(form)
 
         actions = QHBoxLayout()
         save = ModernButton("Enregistrer paramètres", "primary", icon_name=SAVE_ICON)
@@ -137,8 +168,10 @@ class SettingsPage(QWidget):
         actions.addWidget(backup)
         actions.addWidget(restore)
         actions.addStretch(1)
-        layout.addLayout(actions)
-        layout.addStretch(1)
+        card_layout.addLayout(actions)
+        content.addWidget(card, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        content.addStretch(1)
+        layout.addWidget(scroll, 1)
         self.load()
 
     def load(self) -> None:
@@ -157,6 +190,7 @@ class SettingsPage(QWidget):
         self.date_format.setText(settings.get("date_format", "%d/%m/%Y"))
         self.logo_path.setText(settings.get("logo_path", ""))
         self.backup_folder.setText(settings.get("backup_folder", "data/backups"))
+        self.backup_folder.setToolTip(self.backup_folder.text())
         self.auto_backup.setChecked(settings.get("auto_backup_on_close", "true") == "true")
         self.keep.setValue(as_int("auto_backup_keep", 10))
         self.high_unpaid.setValue(as_int("high_unpaid_amount", 50000))

@@ -103,8 +103,25 @@ class InvoicesPage(QWidget):
 
         self.table = ModernTable()
         self.table.set_headers(["ID", "Fournisseur", "N° facture", "Date", "Réception", "TTC", "Statut", "Paiement", "Jours", "Délai", "PJ", "Actions"])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.table.horizontalHeader().setStretchLastSection(True)
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
+        header.setStretchLastSection(False)
+        for column, width in {
+            0: 50,
+            1: 155,
+            2: 120,
+            3: 96,
+            4: 96,
+            5: 105,
+            6: 106,
+            7: 96,
+            8: 58,
+            9: 104,
+            10: 46,
+            11: 252,
+        }.items():
+            self.table.setColumnWidth(column, width)
+        header.setSectionResizeMode(11, QHeaderView.ResizeMode.Fixed)
         layout.addWidget(self.table, 1)
 
         pager = QHBoxLayout()
@@ -190,27 +207,35 @@ class InvoicesPage(QWidget):
             self.table.set_text_item(row_idx, 10, "Oui" if invoice.attachment_path else "Non")
             action_box = QWidget()
             h = QHBoxLayout(action_box)
-            h.setContentsMargins(0, 0, 0, 0)
-            view = ModernButton("Voir", "secondary", icon_name=VIEW_ICON, tooltip="Voir la facture")
+            h.setContentsMargins(4, 4, 4, 4)
+            h.setSpacing(4)
+            view = ModernButton("", "secondary", icon_name=VIEW_ICON, tooltip="Voir la facture", compact=True)
+            view.setFixedWidth(30)
             view.clicked.connect(lambda _=False, iid=invoice.id: self.view_invoice(iid))
-            edit = ModernButton("Éditer", "secondary", icon_name=EDIT_ICON, tooltip="Modifier la facture")
+            edit = ModernButton("", "secondary", icon_name=EDIT_ICON, tooltip="Modifier la facture", compact=True)
+            edit.setFixedWidth(30)
             edit.setEnabled(self.user.can_edit)
             edit.clicked.connect(lambda _=False, iid=invoice.id: self.edit_invoice(iid))
-            pay = ModernButton("Payer", "success", icon_name=PAID_ICON, tooltip="Enregistrer un paiement")
+            pay = ModernButton("", "success", icon_name=PAID_ICON, tooltip="Enregistrer un paiement", compact=True)
+            pay.setFixedWidth(30)
             pay.setEnabled(self.user.can_edit and invoice.status != STATUS_PAID)
             pay.clicked.connect(lambda _=False, iid=invoice.id: self.add_payment(iid))
-            unpaid = ModernButton("Impayé", "secondary", icon_name=UNPAID_ICON, tooltip="Marquer comme non payée")
+            unpaid = ModernButton("", "secondary", icon_name=UNPAID_ICON, tooltip="Marquer comme non payée", compact=True)
+            unpaid.setFixedWidth(30)
             unpaid.setEnabled(self.user.can_edit and invoice.status != STATUS_UNPAID)
             unpaid.clicked.connect(lambda _=False, iid=invoice.id: self.mark_unpaid(iid))
-            attach = ModernButton("PJ", "secondary", icon_name=ATTACHMENT_ICON, tooltip="Ouvrir la pièce jointe")
+            attach = ModernButton("", "secondary", icon_name=ATTACHMENT_ICON, tooltip="Ouvrir la pièce jointe", compact=True)
+            attach.setFixedWidth(30)
             attach.setEnabled(bool(invoice.attachment_path))
             attach.clicked.connect(lambda _=False, path=invoice.attachment_path: self.open_attachment(path))
-            delete = ModernButton("Supprimer", "danger", icon_name=DELETE_ICON, tooltip="Supprimer la facture")
+            delete = ModernButton("Sup.", "danger", icon_name=DELETE_ICON, tooltip="Supprimer la facture", compact=True)
+            delete.setFixedWidth(64)
             delete.setEnabled(self.user.can_delete)
             delete.clicked.connect(lambda _=False, iid=invoice.id: self.delete_invoice(iid))
             for button in (view, edit, pay, unpaid, attach, delete):
                 h.addWidget(button)
             self.table.setCellWidget(row_idx, 11, action_box)
+            self.table.setRowHeight(row_idx, 48)
         total_pages = max((len(self.rows) - 1) // self.page_size + 1, 1)
         self.page_label.setText(f"Page {self.current_page + 1}/{total_pages} • {len(self.rows)} factures")
         self.prev_button.setEnabled(self.current_page > 0)

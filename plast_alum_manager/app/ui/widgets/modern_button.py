@@ -7,15 +7,24 @@ from app.ui.icons import COLOR_MUTED_DARK, COLOR_MUTED_LIGHT, COLOR_WHITE, app_i
 
 
 class ModernButton(QPushButton):
-    def __init__(self, text: str = "", role: str = "secondary", parent=None, icon_name: str | None = None, tooltip: str | None = None) -> None:
+    def __init__(
+        self,
+        text: str = "",
+        role: str = "secondary",
+        parent=None,
+        icon_name: str | None = None,
+        tooltip: str | None = None,
+        compact: bool = False,
+    ) -> None:
         super().__init__(text, parent)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setMinimumHeight(38)
+        self.setMinimumHeight(28 if compact else 38)
+        self.setProperty("compact", compact)
         self._icon_name: str | None = None
-        self._icon_size = 17
+        self._icon_size = 15 if compact else 17
         self.set_role(role)
         if icon_name:
-            self.set_app_icon(icon_name)
+            self.set_app_icon(icon_name, size=self._icon_size)
         if tooltip:
             self.setToolTip(tooltip)
 

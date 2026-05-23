@@ -14,8 +14,11 @@ class ModernTable(QTableWidget):
         self.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
         self.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.verticalHeader().setVisible(False)
+        self.verticalHeader().setDefaultSectionSize(46)
+        self.verticalHeader().setMinimumSectionSize(44)
         self.horizontalHeader().setStretchLastSection(True)
         self.setSortingEnabled(False)
+        self.setWordWrap(False)
 
     def set_headers(self, headers: list[str]) -> None:
         self.setColumnCount(len(headers))
@@ -31,6 +34,7 @@ class ModernTable(QTableWidget):
 
     def badge(self, text: str, color: str, icon_name: str | None = None) -> QFrame:
         badge = QFrame()
+        badge.setFixedHeight(28)
         badge.setStyleSheet(f"background:{color}; color:white; border-radius:10px;")
         layout = QHBoxLayout(badge)
         layout.setContentsMargins(8, 3, 8, 3)
