@@ -53,29 +53,12 @@ if exist "%DIST_DATA_DIR%" (
 )
 
 echo [INFO] Generation de l'executable...
-python -m PyInstaller ^
-    --noconfirm ^
-    --clean ^
-    --windowed ^
-    --onedir ^
-    --name "%APP_NAME%" ^
-    --specpath "build" ^
-    !ICON_ARG! ^
-    --add-data "%PROJECT_DIR%config.py;." ^
-    --add-data "%PROJECT_DIR%app\assets;app\assets" ^
-    --add-data "%PROJECT_DIR%app\styles\dark.qss;app\styles" ^
-    --add-data "%PROJECT_DIR%app\styles\light.qss;app\styles" ^
-    --add-data "%PROJECT_DIR%app\translations\fr.json;app\translations" ^
-    --add-data "%PROJECT_DIR%app\translations\en.json;app\translations" ^
-    --hidden-import "matplotlib.backends.backend_qtagg" ^
-    --hidden-import "app.models.user_model" ^
-    --hidden-import "app.models.convention_model" ^
-    --hidden-import "app.models.supplier_model" ^
-    --hidden-import "app.models.invoice_model" ^
-    --hidden-import "app.models.payment_model" ^
-    --hidden-import "app.models.log_model" ^
-    --hidden-import "app.models.setting_model" ^
-    "!ENTRY_FILE!"
+if not exist "%PROJECT_DIR%plast_alum_windows.spec" (
+    echo [ERREUR] Fichier spec introuvable: %PROJECT_DIR%plast_alum_windows.spec
+    exit /b 1
+)
+
+python -m PyInstaller --noconfirm "%PROJECT_DIR%plast_alum_windows.spec"
 
 if errorlevel 1 (
     echo.
