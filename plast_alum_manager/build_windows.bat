@@ -3,6 +3,10 @@ setlocal EnableExtensions EnableDelayedExpansion
 
 set "APP_NAME=PLAST ALUM - Gestion des Paiements Fournisseurs"
 set "PROJECT_DIR=%~dp0"
+set "DIST_DIR=dist\%APP_NAME%"
+set "DIST_DATA_DIR=%DIST_DIR%\data"
+set "DATA_BACKUP_DIR=%TEMP%\plast_alum_build_data_%RANDOM%%RANDOM%"
+set "HAS_DATA_BACKUP=0"
 cd /d "%PROJECT_DIR%"
 
 echo.
@@ -37,6 +41,17 @@ if exist "app\assets\icons\app.ico" (
     echo [INFO] Aucune icone .ico detectee. Le build utilisera l'icone Windows par defaut.
 )
 
+if exist "%DIST_DATA_DIR%" (
+    echo [INFO] Conservation des donnees existantes: %DIST_DATA_DIR%
+    mkdir "%DATA_BACKUP_DIR%" >nul 2>nul
+    xcopy "%DIST_DATA_DIR%\*" "%DATA_BACKUP_DIR%\" /E /I /Y >nul
+    if errorlevel 1 (
+        echo [ERREUR] Impossible de sauvegarder temporairement les donnees existantes.
+        exit /b 1
+    )
+    set "HAS_DATA_BACKUP=1"
+)
+
 echo [INFO] Generation de l'executable...
 python -m PyInstaller ^
     --noconfirm ^
@@ -68,12 +83,21 @@ if errorlevel 1 (
     exit /b 1
 )
 
-set "DIST_DIR=dist\%APP_NAME%"
 if not exist "%DIST_DIR%\data" mkdir "%DIST_DIR%\data"
 if not exist "%DIST_DIR%\data\backups" mkdir "%DIST_DIR%\data\backups"
 if not exist "%DIST_DIR%\data\exports" mkdir "%DIST_DIR%\data\exports"
 if not exist "%DIST_DIR%\data\uploads" mkdir "%DIST_DIR%\data\uploads"
 if not exist "%DIST_DIR%\data\assets" mkdir "%DIST_DIR%\data\assets"
+
+if "%HAS_DATA_BACKUP%"=="1" (
+    echo [INFO] Restauration des donnees existantes...
+    xcopy "%DATA_BACKUP_DIR%\*" "%DIST_DIR%\data\" /E /I /Y >nul
+    if errorlevel 1 (
+        echo [ERREUR] Impossible de restaurer les donnees existantes.
+        exit /b 1
+    )
+    rmdir /S /Q "%DATA_BACKUP_DIR%" >nul 2>nul
+)
 
 echo.
 echo [OK] Build termine.
