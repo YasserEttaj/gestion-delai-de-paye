@@ -4,14 +4,17 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QHBoxLayout, QMainWindow, QMenu, QMessageBox, QStackedWidget, QStatusBar, QVBoxLayout, QWidget
 
+from app.auth.session import AuthSession
 from app.services.auth_service import AuthService
 from app.services.backup_service import BackupService
+from app.services.convention_service import ConventionService
 from app.services.invoice_service import InvoiceService
 from app.services.settings_service import SettingsService
 from app.services.translation_service import TranslationService
 from app.styles.themes import apply_theme
 from app.ui.pages.activity_logs_page import ActivityLogsPage
 from app.ui.pages.dashboard_page import DashboardPage
+from app.ui.pages.conventions_page import ConventionsPage
 from app.ui.pages.import_excel_page import ImportExcelPage
 from app.ui.pages.invoices_page import InvoicesPage
 from app.ui.pages.reports_page import ReportsPage
@@ -28,6 +31,7 @@ class MainWindow(QMainWindow):
         "dashboard": "Tableau de bord",
         "suppliers": "Fournisseurs",
         "invoices": "Factures",
+        "conventions": "Deadlines / Conventions",
         "reports": "Rapports",
         "import_excel": "Import Excel",
         "users": "Utilisateurs",
@@ -38,6 +42,7 @@ class MainWindow(QMainWindow):
     def __init__(self, user, theme: str = "dark", language: str = "fr") -> None:
         super().__init__()
         self.user = user
+        AuthSession.start(user)
         self.theme = theme
         self.translator = TranslationService(language)
         self.setWindowTitle(APP_NAME)
@@ -57,6 +62,8 @@ class MainWindow(QMainWindow):
             pages.add("invoice_form")
         if self.user.can_import_export:
             pages.add("import_excel")
+        if getattr(self.user, "can_manage_conventions", False):
+            pages.add("conventions")
         if self.user.role == ROLE_ADMIN:
             pages.update({"users", "settings", "activity_logs"})
         return pages
@@ -96,6 +103,8 @@ class MainWindow(QMainWindow):
         self.pages["suppliers"] = SuppliersPage(self.user)
         self.pages["suppliers"].supplier_invoices_requested.connect(self.open_supplier_invoices)
         self.pages["invoices"] = InvoicesPage(self.user)
+        if "conventions" in self.allowed_pages:
+            self.pages["conventions"] = ConventionsPage(self.user)
         self.pages["reports"] = ReportsPage(self.user)
         if "import_excel" in self.allowed_pages:
             self.pages["import_excel"] = ImportExcelPage(self.user)
@@ -118,12 +127,22 @@ class MainWindow(QMainWindow):
 
     def navigate(self, page: str) -> None:
         if page == "suppliers:add":
+            if not self.user.can_edit:
+                return
             self.navigate("suppliers")
             self.pages["suppliers"].add_supplier()
             return
         if page == "invoice_form":
+            if not self.user.can_edit:
+                return
             self.navigate("invoices")
             self.pages["invoices"].add_invoice()
+            return
+        if page == "conventions" and not getattr(self.user, "can_manage_conventions", False):
+            QMessageBox.warning(self, "Accès refusé", "Cette page est réservée aux utilisateurs autorisés.")
+            return
+        if page in {"users", "settings", "activity_logs"} and not self.user.can_manage_users:
+            QMessageBox.warning(self, "Accès refusé", "Cette page est réservée aux administrateurs.")
             return
         if page not in self.pages:
             return
@@ -159,6 +178,8 @@ class MainWindow(QMainWindow):
 
     def refresh_notifications(self) -> None:
         self.notifications = InvoiceService.notifications()
+        if getattr(self.user, "can_manage_conventions", False):
+            self.notifications.extend(ConventionService.notifications())
         self.topbar.set_notification_count(len(self.notifications))
 
     def show_notifications(self) -> None:
@@ -171,14 +192,21 @@ class MainWindow(QMainWindow):
             invoice_id = note.get("invoice_id")
             if invoice_id:
                 action.triggered.connect(lambda _=False, iid=invoice_id: self._open_invoice_from_notification(iid))
+            convention_id = note.get("convention_id")
+            if convention_id:
+                action.triggered.connect(lambda _=False, cid=convention_id: self._open_convention_from_notification(cid))
         menu.exec(self.topbar.notification_button.mapToGlobal(self.topbar.notification_button.rect().bottomLeft()))
 
     def _open_invoice_from_notification(self, invoice_id: int) -> None:
         self.navigate("invoices")
         self.pages["invoices"].view_invoice(invoice_id)
 
+    def _open_convention_from_notification(self, convention_id: int) -> None:
+        self.navigate("conventions")
+
     def logout(self) -> None:
         AuthService.logout(self.user.id)
+        AuthSession.clear()
         from app.login_window import LoginWindow
 
         self.login_window = LoginWindow()

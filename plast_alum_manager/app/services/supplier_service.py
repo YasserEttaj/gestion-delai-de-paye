@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from sqlalchemy import case, func, or_
+from sqlalchemy import or_
+from sqlalchemy.orm import selectinload
 
 from app.database.db import session_scope
 from app.models.invoice_model import Invoice
@@ -11,18 +12,54 @@ from config import STATUS_PAID
 
 class SupplierService:
     @staticmethod
+    def _outstanding_amount(supplier: Supplier) -> float:
+        total = 0.0
+        for invoice in supplier.invoices:
+            if invoice.status == STATUS_PAID:
+                continue
+            paid = sum(float(payment.amount or 0) for payment in invoice.payments)
+            total += max(float(invoice.amount_ttc or 0) - paid, 0.0)
+        return total
+
+    @staticmethod
+    def _clean(data: dict) -> dict:
+        cleaned = {
+            "name": (data.get("name") or "").strip(),
+            "ice": (data.get("ice") or "").strip() or None,
+            "if_number": (data.get("if_number") or "").strip() or None,
+            "rc": (data.get("rc") or "").strip() or None,
+            "address": (data.get("address") or "").strip() or None,
+            "city": (data.get("city") or "").strip() or None,
+            "phone": (data.get("phone") or "").strip() or None,
+            "email": (data.get("email") or "").strip().lower() or None,
+            "contact_person": (data.get("contact_person") or "").strip() or None,
+            "rib": (data.get("rib") or "").strip() or None,
+            "notes": (data.get("notes") or "").strip() or None,
+        }
+        if not cleaned["name"]:
+            raise ValueError("Le nom fournisseur est obligatoire.")
+        if cleaned["email"] and "@" not in cleaned["email"]:
+            raise ValueError("Email fournisseur invalide.")
+        return cleaned
+
+    @staticmethod
+    def _check_duplicate(session, data: dict, current_id: int | None = None) -> None:
+        name_query = session.query(Supplier).filter(Supplier.name.ilike(data["name"]))
+        if current_id:
+            name_query = name_query.filter(Supplier.id != current_id)
+        if name_query.first():
+            raise ValueError("Un fournisseur avec ce nom existe déjà.")
+        if data.get("ice"):
+            ice_query = session.query(Supplier).filter(Supplier.ice == data["ice"])
+            if current_id:
+                ice_query = ice_query.filter(Supplier.id != current_id)
+            if ice_query.first():
+                raise ValueError("Un fournisseur avec cet ICE existe déjà.")
+
+    @staticmethod
     def list_suppliers(search: str = "", city: str = "", sort_by: str = "name") -> list[dict]:
         with session_scope() as session:
-            unpaid_sum = func.coalesce(func.sum(case((Invoice.status != STATUS_PAID, Invoice.amount_ttc), else_=0)), 0)
-            query = (
-                session.query(
-                    Supplier,
-                    func.count(Invoice.id).label("invoice_count"),
-                    unpaid_sum.label("unpaid_amount"),
-                )
-                .outerjoin(Invoice)
-                .group_by(Supplier.id)
-            )
+            query = session.query(Supplier).options(selectinload(Supplier.invoices).selectinload(Invoice.payments))
             if search:
                 like = f"%{search}%"
                 query = query.filter(
@@ -41,9 +78,14 @@ class SupplierService:
                 query = query.order_by(Supplier.created_at.desc())
             else:
                 query = query.order_by(Supplier.name.asc())
+            suppliers = query.all()
             return [
-                {"supplier": supplier, "invoice_count": int(invoice_count or 0), "unpaid_amount": float(unpaid_amount or 0)}
-                for supplier, invoice_count, unpaid_amount in query.all()
+                {
+                    "supplier": supplier,
+                    "invoice_count": len(supplier.invoices),
+                    "unpaid_amount": SupplierService._outstanding_amount(supplier),
+                }
+                for supplier in suppliers
             ]
 
     @staticmethod
@@ -64,8 +106,10 @@ class SupplierService:
 
     @staticmethod
     def create_supplier(data: dict, user_id: int | None) -> Supplier:
+        cleaned = SupplierService._clean(data)
         with session_scope() as session:
-            supplier = Supplier(**data)
+            SupplierService._check_duplicate(session, cleaned)
+            supplier = Supplier(**cleaned)
             session.add(supplier)
             session.flush()
             LogService.log(session, user_id, "Add supplier", "supplier", supplier.id, supplier.name)
@@ -73,11 +117,13 @@ class SupplierService:
 
     @staticmethod
     def update_supplier(supplier_id: int, data: dict, user_id: int | None) -> None:
+        cleaned = SupplierService._clean(data)
         with session_scope() as session:
             supplier = session.get(Supplier, supplier_id)
             if not supplier:
                 raise ValueError("Fournisseur introuvable.")
-            for key, value in data.items():
+            SupplierService._check_duplicate(session, cleaned, supplier_id)
+            for key, value in cleaned.items():
                 setattr(supplier, key, value)
             LogService.log(session, user_id, "Edit supplier", "supplier", supplier.id, supplier.name)
 

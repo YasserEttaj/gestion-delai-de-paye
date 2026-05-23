@@ -45,3 +45,8 @@ def session_scope() -> Iterator:
         raise
     finally:
         session.close()
+
+
+# Keep relationship targets registered even when a service is used from a
+# standalone script instead of the full GUI bootstrap.
+from app import models as _models  # noqa: E402,F401

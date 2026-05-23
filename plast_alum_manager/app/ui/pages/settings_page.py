@@ -142,6 +142,12 @@ class SettingsPage(QWidget):
 
     def load(self) -> None:
         settings = SettingsService.all()
+        def as_int(key: str, default: int) -> int:
+            try:
+                return int(float(settings.get(key, default)))
+            except (TypeError, ValueError):
+                return default
+
         self.company_name.setText(settings.get("company_name", "PLAST ALUM"))
         self.app_title.setText(settings.get("app_title", "PLAST ALUM"))
         self.language.setCurrentIndex(max(self.language.findData(settings.get("default_language", "fr")), 0))
@@ -151,14 +157,14 @@ class SettingsPage(QWidget):
         self.logo_path.setText(settings.get("logo_path", ""))
         self.backup_folder.setText(settings.get("backup_folder", "data/backups"))
         self.auto_backup.setChecked(settings.get("auto_backup_on_close", "true") == "true")
-        self.keep.setValue(int(settings.get("auto_backup_keep", 10)))
-        self.high_unpaid.setValue(int(float(settings.get("high_unpaid_amount", 50000))))
-        self.normal_max.setValue(int(settings.get("normal_max_days", 40)))
-        self.attention_min.setValue(int(settings.get("attention_min_days", 41)))
-        self.attention_max.setValue(int(settings.get("attention_max_days", 49)))
-        self.urgent_min.setValue(int(settings.get("urgent_min_days", 50)))
-        self.urgent_max.setValue(int(settings.get("urgent_max_days", 59)))
-        self.critical_min.setValue(int(settings.get("critical_min_days", 60)))
+        self.keep.setValue(as_int("auto_backup_keep", 10))
+        self.high_unpaid.setValue(as_int("high_unpaid_amount", 50000))
+        self.normal_max.setValue(as_int("normal_max_days", 40))
+        self.attention_min.setValue(as_int("attention_min_days", 41))
+        self.attention_max.setValue(as_int("attention_max_days", 49))
+        self.urgent_min.setValue(as_int("urgent_min_days", 50))
+        self.urgent_max.setValue(as_int("urgent_max_days", 59))
+        self.critical_min.setValue(as_int("critical_min_days", 60))
 
     def values(self) -> dict[str, str]:
         return {

@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QApplication, QFrame, QGridLayout, QHBoxLayout, QLab
 
 from app.services.activity_service import ActivityService
 from app.services.backup_service import BackupService
+from app.services.convention_service import CONVENTION_STATUS_LABELS, ConventionService
 from app.services.invoice_service import InvoiceService
 from app.services.report_service import ReportService
 from app.ui.widgets.modern_button import ModernButton
@@ -40,6 +41,7 @@ class DashboardPage(QWidget):
         hero.addWidget(greeting)
         hero.addStretch(1)
         backup = ModernButton("Sauvegarder base", "secondary")
+        backup.setEnabled(self.user.can_manage_users)
         backup.clicked.connect(self._backup)
         hero.addWidget(backup)
         layout.addLayout(hero)
@@ -60,6 +62,8 @@ class DashboardPage(QWidget):
             ("paid_amount", "Montant payé", "MAD", "#16A34A"),
             ("critical_count", "Critiques +60j", "60", "#000000"),
         ]
+        if getattr(self.user, "can_manage_conventions", False):
+            card_defs.append(("convention_urgent", "Conventions urgentes", "C", "#DC2626"))
         for idx, (key, title, icon, accent) in enumerate(card_defs):
             card = StatCard(title, "0", "", icon, accent)
             self.cards[key] = card
@@ -74,9 +78,16 @@ class DashboardPage(QWidget):
         for page, label in [
             ("suppliers:add", "Ajouter fournisseur"),
             ("invoice_form", "Ajouter facture"),
+            ("conventions", "Conventions"),
             ("import_excel", "Importer Excel"),
             ("reports", "Exporter rapport"),
         ]:
+            if page in {"suppliers:add", "invoice_form"} and not self.user.can_edit:
+                continue
+            if page == "conventions" and not getattr(self.user, "can_manage_conventions", False):
+                continue
+            if page == "import_excel" and not self.user.can_import_export:
+                continue
             button = ModernButton(label, "primary" if page == "invoice_form" else "secondary")
             button.clicked.connect(lambda _checked=False, target=page: self.quick_action_requested.emit(target))
             actions.addWidget(button)
@@ -102,6 +113,14 @@ class DashboardPage(QWidget):
         middle.addWidget(self.alert_panel, 1)
         layout.addLayout(middle)
 
+        if getattr(self.user, "can_manage_conventions", False):
+            self.conventions_panel = QFrame()
+            self.conventions_panel.setProperty("card", True)
+            self.conventions_layout = QVBoxLayout(self.conventions_panel)
+            self.conventions_layout.setContentsMargins(16, 14, 16, 14)
+            self.conventions_layout.setSpacing(8)
+            layout.addWidget(self.conventions_panel)
+
         self.activity_panel = QFrame()
         self.activity_panel.setProperty("card", True)
         self.activity_panel.setMinimumHeight(185)
@@ -113,6 +132,8 @@ class DashboardPage(QWidget):
         self.refresh()
 
     def _backup(self) -> None:
+        if not self.user.can_manage_users:
+            return
         path = BackupService.create_backup(self.user.id)
         self.refresh()
         from app.ui.widgets.toast_notification import ToastNotification
@@ -121,12 +142,15 @@ class DashboardPage(QWidget):
 
     def refresh(self) -> None:
         stats = InvoiceService.dashboard_stats()
+        convention_stats = ConventionService.stats() if getattr(self.user, "can_manage_conventions", False) else {}
         money_keys = {"unpaid_amount", "paid_amount"}
         for key, card in self.cards.items():
-            value = stats.get(key, 0)
+            value = convention_stats.get("urgent", 0) if key == "convention_urgent" else stats.get(key, 0)
             card.set_value(f"{value:,.2f} MAD" if key in money_keys else str(value))
         self._render_charts(stats)
         self._render_alerts(stats)
+        if getattr(self.user, "can_manage_conventions", False):
+            self._render_conventions(convention_stats)
         self._render_activity()
 
     def _clear_layout(self, layout: QVBoxLayout) -> None:
@@ -205,6 +229,39 @@ class DashboardPage(QWidget):
                 )
             )
         self.alert_layout.addStretch(1)
+
+    def _render_conventions(self, stats: dict) -> None:
+        self._clear_layout(self.conventions_layout)
+        top = QHBoxLayout()
+        title = QLabel("Conventions et échéances")
+        title.setStyleSheet("font-size:16px; font-weight:800;")
+        badge = QLabel(f"{stats.get('urgent', 0)} notification(s)")
+        badge.setStyleSheet("background:#DC2626; color:white; border-radius:10px; padding:4px 10px; font-weight:800;")
+        top.addWidget(title)
+        top.addStretch(1)
+        top.addWidget(badge)
+        self.conventions_layout.addLayout(top)
+
+        rows = stats.get("expired_rows", []) + stats.get("nearest", [])
+        seen: set[int] = set()
+        visible = []
+        for convention in rows:
+            if convention.id in seen:
+                continue
+            seen.add(convention.id)
+            visible.append(convention)
+        if not visible:
+            self.conventions_layout.addWidget(NotificationCard("Aucune échéance de convention", "Aucune convention active à surveiller.", "normal"))
+        for convention in visible[:6]:
+            level = "critical" if convention.remaining_days <= 0 else "urgent" if convention.remaining_days <= 7 else "attention" if convention.remaining_days <= 15 else "info"
+            self.conventions_layout.addWidget(
+                NotificationCard(
+                    f"{convention.company_name} - {convention.convention_number}",
+                    f"{convention.convention_type} • Échéance {convention.due_date} • {convention.remaining_days} jour(s) • {CONVENTION_STATUS_LABELS.get(convention.status, convention.status)}",
+                    level,
+                )
+            )
+        self.conventions_layout.addStretch(1)
 
     def _render_activity(self) -> None:
         self._clear_layout(self.activity_layout)

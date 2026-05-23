@@ -216,6 +216,56 @@ QFrame#LoginCard {
     border-radius: 14px;
 }
 
+QFrame#AuthCard {
+    background: #FFFFFF;
+    border: 1px solid #D8E1EE;
+    border-radius: 18px;
+}
+
+QFrame#AuthImagePanel {
+    background: #E5EEF8;
+    border-radius: 24px;
+}
+
+QLabel#AuthEyebrow {
+    color: #2563EB;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+QLabel#AuthTitle {
+    color: #0F172A;
+    font-size: 30px;
+    font-weight: 900;
+}
+
+QLabel#AuthSubtitle {
+    color: #64748B;
+    font-size: 13px;
+}
+
+QLabel#AuthMessage {
+    color: #DC2626;
+    font-weight: 800;
+    min-height: 20px;
+}
+
+QLabel#AuthMessage[success="true"] {
+    color: #16A34A;
+}
+
+QFrame#AuthCard QLineEdit {
+    min-height: 28px;
+    border-radius: 10px;
+    padding: 9px 12px;
+}
+
+QFrame#AuthCard QPushButton[active="true"] {
+    background: #2563EB;
+    border-color: #2563EB;
+    color: #FFFFFF;
+}
+
 QLineEdit, QTextEdit, QPlainTextEdit, QComboBox, QDateEdit, QDoubleSpinBox, QSpinBox {
     background: #FFFFFF;
     color: #0F172A;

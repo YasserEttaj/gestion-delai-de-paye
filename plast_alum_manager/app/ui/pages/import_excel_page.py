@@ -65,7 +65,7 @@ class ImportExcelPage(QWidget):
         invalid = len(rows) - valid
         global_errors = self.preview.get("errors", [])
         self.summary.setText(f"{len(rows)} ligne(s) lues • {valid} valide(s) • {invalid} invalide(s)" + (f" • {', '.join(global_errors)}" if global_errors else ""))
-        self.import_button.setEnabled(valid > 0 and self.user.can_import_export)
+        self.import_button.setEnabled(valid > 0 and not global_errors and self.user.can_import_export)
         self.table.setRowCount(len(rows))
         for row_idx, row in enumerate(rows):
             values = [

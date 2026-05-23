@@ -49,7 +49,7 @@ class InvoiceFormDialog(QDialog):
 
         form = QFormLayout()
         self.supplier = QComboBox()
-        self.supplier.setEditable(True)
+        self.supplier.setEditable(False)
         self.supplier.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
         for supplier in self.suppliers:
             self.supplier.addItem(supplier.name, supplier.id)
@@ -217,14 +217,16 @@ class PaymentDialog(QDialog):
     def __init__(self, invoice: Invoice, parent=None) -> None:
         super().__init__(parent)
         self.invoice = invoice
+        paid = sum(float(payment.amount or 0) for payment in getattr(invoice, "payments", []))
+        outstanding = max(float(invoice.amount_ttc or 0) - paid, 0.0)
         self.setWindowTitle("Paiement partiel")
         self.setMinimumWidth(420)
         layout = QVBoxLayout(self)
         form = QFormLayout()
         self.amount = QDoubleSpinBox()
-        self.amount.setRange(0, float(invoice.amount_ttc or 0))
+        self.amount.setRange(0.01, max(outstanding, 0.01))
         self.amount.setDecimals(2)
-        self.amount.setValue(float(invoice.amount_ttc or 0))
+        self.amount.setValue(max(outstanding, 0.01))
         self.amount.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.payment_date = QDateEdit()
         self.payment_date.setCalendarPopup(True)

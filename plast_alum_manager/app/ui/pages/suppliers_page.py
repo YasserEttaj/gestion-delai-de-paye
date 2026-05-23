@@ -36,6 +36,7 @@ class SuppliersPage(QWidget):
         self.add_button.setEnabled(self.user.can_edit)
         top.addWidget(self.add_button)
         export = ModernButton("Exporter fournisseurs", "secondary")
+        export.setEnabled(self.user.can_import_export)
         export.clicked.connect(self.export_suppliers)
         top.addWidget(export)
         layout.addLayout(top)
@@ -150,6 +151,9 @@ class SuppliersPage(QWidget):
         self.render()
 
     def add_supplier(self) -> None:
+        if not self.user.can_edit:
+            ConfirmDialog.error(self, "Accès refusé", "Vous n'êtes pas autorisé à ajouter des fournisseurs.")
+            return
         dialog = SupplierFormDialog(parent=self)
         if dialog.exec():
             try:
@@ -160,6 +164,9 @@ class SuppliersPage(QWidget):
                 ConfirmDialog.error(self, "Erreur", str(exc))
 
     def edit_supplier(self, supplier_id: int) -> None:
+        if not self.user.can_edit:
+            ConfirmDialog.error(self, "Accès refusé", "Vous n'êtes pas autorisé à modifier des fournisseurs.")
+            return
         supplier = SupplierService.get_supplier(supplier_id)
         if not supplier:
             return
@@ -173,6 +180,9 @@ class SuppliersPage(QWidget):
                 ConfirmDialog.error(self, "Erreur", str(exc))
 
     def delete_supplier(self, supplier_id: int) -> None:
+        if not self.user.can_delete:
+            ConfirmDialog.error(self, "Accès refusé", "Vous n'êtes pas autorisé à supprimer des fournisseurs.")
+            return
         if not ConfirmDialog.ask(self, "Confirmation", "Supprimer ce fournisseur et ses factures ?"):
             return
         try:
@@ -195,6 +205,9 @@ class SuppliersPage(QWidget):
         )
 
     def export_suppliers(self) -> None:
+        if not self.user.can_import_export:
+            ConfirmDialog.error(self, "Accès refusé", "Vous n'êtes pas autorisé à exporter les fournisseurs.")
+            return
         from openpyxl import Workbook
 
         EXPORT_DIR.mkdir(parents=True, exist_ok=True)

@@ -6,6 +6,11 @@ from app.models.log_model import ActivityLog
 class LogService:
     @staticmethod
     def log(session, user_id: int | None, action: str, entity_type: str | None = None, entity_id: int | None = None, details: str | None = None) -> None:
+        if user_id is not None:
+            from app.models.user_model import User
+
+            if session.get(User, user_id) is None:
+                user_id = None
         session.add(
             ActivityLog(
                 user_id=user_id,

@@ -136,7 +136,10 @@ class ReportsPage(QWidget):
     def refresh(self) -> None:
         try:
             self.report = ReportService.filtered_report(self.filters())
-        except Exception:
+        except Exception as exc:
+            self.report = {"rows": [], "count": 0, "total_amount": 0, "total_paid": 0, "total_unpaid": 0}
+            self.summary.setText(f"Impossible de charger le rapport: {exc}")
+            self.table.show_empty("Aucune donnée disponible.", 10)
             return
         self.summary.setText(
             f"{self.report['count']} facture(s) • Total: {self.report['total_amount']:,.2f} MAD • Payé: {self.report['total_paid']:,.2f} MAD • Impayé: {self.report['total_unpaid']:,.2f} MAD"
@@ -165,6 +168,9 @@ class ReportsPage(QWidget):
                 self.table.set_text_item(row_idx, col, value, align_right=col in {0, 4, 6, 8, 9})
 
     def export_excel(self) -> None:
+        if not self.user.can_import_export:
+            ConfirmDialog.error(self, "Accès refusé", "Vous n'êtes pas autorisé à exporter les rapports.")
+            return
         try:
             path = ExcelService.export_invoices(self.report["rows"], user_id=self.user.id)
             ConfirmDialog.info(self, "Export Excel", f"Fichier créé: {path}")
@@ -172,6 +178,9 @@ class ReportsPage(QWidget):
             ConfirmDialog.error(self, "Export Excel", str(exc))
 
     def export_pdf(self) -> None:
+        if not self.user.can_import_export:
+            ConfirmDialog.error(self, "Accès refusé", "Vous n'êtes pas autorisé à exporter les rapports.")
+            return
         try:
             path = PdfService.export_report(self.report, self.report_type.currentText(), self.filters(), self.user.full_name, self.user.id)
             ConfirmDialog.info(self, "Export PDF", f"Fichier créé: {path}")
@@ -179,6 +188,9 @@ class ReportsPage(QWidget):
             ConfirmDialog.error(self, "Export PDF", str(exc))
 
     def print_report(self) -> None:
+        if not self.user.can_import_export:
+            ConfirmDialog.error(self, "Accès refusé", "Vous n'êtes pas autorisé à imprimer les rapports.")
+            return
         try:
             path = PdfService.export_report(self.report, self.report_type.currentText(), self.filters(), self.user.full_name, self.user.id)
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))

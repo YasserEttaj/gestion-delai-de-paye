@@ -2,16 +2,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PyQt6.QtCore import QDate, QUrl
+from PyQt6.QtCore import QUrl
 from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import (
     QComboBox,
-    QDateEdit,
     QHBoxLayout,
     QHeaderView,
     QLabel,
     QLineEdit,
-    QMenu,
     QVBoxLayout,
     QWidget,
 )
@@ -47,7 +45,9 @@ class InvoicesPage(QWidget):
         top.addWidget(add)
         layout.addLayout(top)
 
-        filters = QHBoxLayout()
+        filters = QVBoxLayout()
+        primary_filters = QHBoxLayout()
+        secondary_filters = QHBoxLayout()
         self.search = QLineEdit()
         self.search.setPlaceholderText("Recherche fournisseur ou numéro facture")
         self.search.textChanged.connect(self.refresh)
@@ -71,11 +71,23 @@ class InvoicesPage(QWidget):
         self.sort.addItem("Montant", "amount")
         self.sort.addItem("Nombre de jours", "days")
         self.sort.currentIndexChanged.connect(self.refresh)
-        filters.addWidget(self.search, 2)
-        filters.addWidget(self.status)
-        filters.addWidget(self.deadline)
-        filters.addWidget(self.supplier)
-        filters.addWidget(self.sort)
+        self.date_from = QLineEdit()
+        self.date_from.setPlaceholderText("Du yyyy-mm-dd")
+        self.date_from.textChanged.connect(self.refresh)
+        self.date_to = QLineEdit()
+        self.date_to.setPlaceholderText("Au yyyy-mm-dd")
+        self.date_to.textChanged.connect(self.refresh)
+        primary_filters.addWidget(self.search, 2)
+        primary_filters.addWidget(self.status)
+        primary_filters.addWidget(self.deadline)
+        primary_filters.addWidget(self.supplier)
+        primary_filters.addWidget(self.sort)
+        secondary_filters.addWidget(QLabel("Date facture"))
+        secondary_filters.addWidget(self.date_from)
+        secondary_filters.addWidget(self.date_to)
+        secondary_filters.addStretch(1)
+        filters.addLayout(primary_filters)
+        filters.addLayout(secondary_filters)
         layout.addLayout(filters)
 
         self.table = ModernTable()
@@ -123,6 +135,8 @@ class InvoicesPage(QWidget):
             "deadline_category": self.deadline.currentData(),
             "supplier_id": self.supplier.currentData(),
             "sort_by": self.sort.currentData(),
+            "date_from": self.date_from.text().strip(),
+            "date_to": self.date_to.text().strip(),
         }
 
     def refresh(self) -> None:
@@ -172,12 +186,16 @@ class InvoicesPage(QWidget):
             pay = ModernButton("Payer", "success")
             pay.setEnabled(self.user.can_edit and invoice.status != STATUS_PAID)
             pay.clicked.connect(lambda _=False, iid=invoice.id: self.add_payment(iid))
+            unpaid = ModernButton("Impayé", "secondary")
+            unpaid.setEnabled(self.user.can_edit and invoice.status != STATUS_UNPAID)
+            unpaid.clicked.connect(lambda _=False, iid=invoice.id: self.mark_unpaid(iid))
             attach = ModernButton("PJ", "secondary")
+            attach.setEnabled(bool(invoice.attachment_path))
             attach.clicked.connect(lambda _=False, path=invoice.attachment_path: self.open_attachment(path))
             delete = ModernButton("Supprimer", "danger")
             delete.setEnabled(self.user.can_delete)
             delete.clicked.connect(lambda _=False, iid=invoice.id: self.delete_invoice(iid))
-            for button in (view, edit, pay, attach, delete):
+            for button in (view, edit, pay, unpaid, attach, delete):
                 h.addWidget(button)
             self.table.setCellWidget(row_idx, 11, action_box)
         total_pages = max((len(self.rows) - 1) // self.page_size + 1, 1)
@@ -194,6 +212,10 @@ class InvoicesPage(QWidget):
         self.render()
 
     def add_invoice(self) -> None:
+        if not self.user.can_edit:
+            ConfirmDialog.error(self, "Accès refusé", "Vous n'êtes pas autorisé à ajouter des factures.")
+            return
+        self.reload_suppliers()
         dialog = InvoiceFormDialog(parent=self)
         if dialog.exec():
             try:
@@ -204,6 +226,9 @@ class InvoicesPage(QWidget):
                 ConfirmDialog.error(self, "Erreur", str(exc))
 
     def edit_invoice(self, invoice_id: int) -> None:
+        if not self.user.can_edit:
+            ConfirmDialog.error(self, "Accès refusé", "Vous n'êtes pas autorisé à modifier des factures.")
+            return
         invoice = InvoiceService.get_invoice(invoice_id)
         if not invoice:
             return
@@ -217,6 +242,9 @@ class InvoicesPage(QWidget):
                 ConfirmDialog.error(self, "Erreur", str(exc))
 
     def add_payment(self, invoice_id: int) -> None:
+        if not self.user.can_edit:
+            ConfirmDialog.error(self, "Accès refusé", "Vous n'êtes pas autorisé à enregistrer des paiements.")
+            return
         invoice = InvoiceService.get_invoice(invoice_id)
         if not invoice:
             return
@@ -229,7 +257,22 @@ class InvoicesPage(QWidget):
             except Exception as exc:
                 ConfirmDialog.error(self, "Erreur", str(exc))
 
+    def mark_unpaid(self, invoice_id: int) -> None:
+        if not self.user.can_edit:
+            ConfirmDialog.error(self, "Accès refusé", "Vous n'êtes pas autorisé à modifier les paiements.")
+            return
+        if not ConfirmDialog.ask(self, "Confirmation", "Marquer cette facture comme non payée et supprimer ses paiements enregistrés ?"):
+            return
+        try:
+            InvoiceService.mark_unpaid(invoice_id, self.user.id)
+            self.refresh()
+        except Exception as exc:
+            ConfirmDialog.error(self, "Erreur", str(exc))
+
     def delete_invoice(self, invoice_id: int) -> None:
+        if not self.user.can_delete:
+            ConfirmDialog.error(self, "Accès refusé", "Vous n'êtes pas autorisé à supprimer des factures.")
+            return
         if not ConfirmDialog.ask(self, "Confirmation", "Supprimer cette facture ?"):
             return
         try:

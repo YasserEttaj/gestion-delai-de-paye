@@ -6,6 +6,10 @@ from app.database.db import session_scope
 from app.models.user_model import User
 from app.services.auth_service import AuthService
 from app.services.log_service import LogService
+from config import ROLE_ADMIN, ROLE_USER
+
+
+VALID_ROLES = {ROLE_ADMIN, ROLE_USER}
 
 
 class UserService:
@@ -15,20 +19,29 @@ class UserService:
             query = session.query(User)
             if search:
                 like = f"%{search}%"
-                query = query.filter(or_(User.username.ilike(like), User.full_name.ilike(like), User.email.ilike(like)))
+                query = query.filter(or_(User.username.ilike(like), User.full_name.ilike(like), User.email.ilike(like), User.phone.ilike(like)))
             return list(query.order_by(User.created_at.desc()).all())
 
     @staticmethod
     def create_user(data: dict, actor_id: int | None) -> User:
         with session_scope() as session:
-            if session.query(User).filter_by(username=data["username"]).first():
-                raise ValueError("Nom d'utilisateur déjà utilisé.")
-            if data.get("email") and session.query(User).filter_by(email=data["email"]).first():
-                raise ValueError("Email déjà utilisé.")
+            username = data["username"].strip()
+            full_name = data["full_name"].strip()
+            email = (data.get("email") or "").strip().lower() or None
+            if not full_name or not username:
+                raise ValueError("Nom complet et utilisateur sont obligatoires.")
+            duplicate = AuthService._find_duplicate(session, username, email)
+            if duplicate:
+                raise ValueError(duplicate)
+            if data["role"] not in VALID_ROLES:
+                raise ValueError("Rôle utilisateur invalide.")
+            if len(data["password"]) < 8:
+                raise ValueError("Le mot de passe doit contenir au moins 8 caractères.")
             user = User(
-                username=data["username"].strip(),
-                full_name=data["full_name"].strip(),
-                email=data.get("email") or None,
+                username=username,
+                full_name=full_name,
+                email=email,
+                phone=(data.get("phone") or "").strip() or None,
                 password_hash=AuthService.hash_password(data["password"]),
                 role=data["role"],
                 is_active=bool(data.get("is_active", True)),
@@ -44,19 +57,25 @@ class UserService:
             user = session.get(User, user_id)
             if not user:
                 raise ValueError("Utilisateur introuvable.")
-            duplicate = session.query(User).filter(User.id != user_id, User.username == data["username"]).first()
+            username = data["username"].strip()
+            full_name = data["full_name"].strip()
+            email = (data.get("email") or "").strip().lower() or None
+            if not full_name or not username:
+                raise ValueError("Nom complet et utilisateur sont obligatoires.")
+            duplicate = AuthService._find_duplicate(session, username, email, exclude_user_id=user_id)
             if duplicate:
-                raise ValueError("Nom d'utilisateur déjà utilisé.")
-            if data.get("email"):
-                duplicate_email = session.query(User).filter(User.id != user_id, User.email == data["email"]).first()
-                if duplicate_email:
-                    raise ValueError("Email déjà utilisé.")
+                raise ValueError(duplicate)
+            if data["role"] not in VALID_ROLES:
+                raise ValueError("Rôle utilisateur invalide.")
             user.username = data["username"].strip()
-            user.full_name = data["full_name"].strip()
-            user.email = data.get("email") or None
+            user.full_name = full_name
+            user.email = email
+            user.phone = (data.get("phone") or "").strip() or None
             user.role = data["role"]
             user.is_active = bool(data.get("is_active", True))
             if data.get("password"):
+                if len(data["password"]) < 8:
+                    raise ValueError("Le mot de passe doit contenir au moins 8 caractères.")
                 user.password_hash = AuthService.hash_password(data["password"])
             LogService.log(session, actor_id, "Edit user", "user", user.id, user.username)
 

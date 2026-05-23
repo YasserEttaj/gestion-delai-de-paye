@@ -25,9 +25,13 @@ La base SQLite locale est créée automatiquement dans `data/database.sqlite`.
 Compte administrateur initial :
 
 - Utilisateur : `admin`
+- Email / identifiant : `admin@plast-alum.local`
 - Mot de passe : `admin123`
+- Rôle : `admin`
 
-Après la première connexion, changez ce mot de passe depuis la page `Utilisateurs`.
+Vous pouvez vous connecter avec `admin` ou `admin@plast-alum.local` dans le champ utilisateur/email.
+
+Après la première connexion, changez ce mot de passe depuis la page `Utilisateurs` : éditez le compte `admin`, saisissez un nouveau mot de passe, puis enregistrez.
 
 ## Données de démonstration
 
@@ -79,10 +83,11 @@ Attention : ces commandes ne ciblent que les lignes marquées comme données de 
 ## Fonctionnalités
 
 - Connexion sécurisée avec mots de passe hachés.
-- Gestion des rôles : Admin, Comptable, Viewer.
+- Gestion des rôles : `admin` et `user`.
 - Tableau de bord avec statistiques, alertes et graphiques.
 - Gestion complète des fournisseurs.
 - Gestion complète des factures et paiements partiels.
+- Suivi des conventions et échéances configurables avec alertes à 15, 7 et 3 jours.
 - Calcul automatique des catégories de délai : Normal, Attention, Urgent, Critique.
 - Import Excel avec prévisualisation et validation.
 - Exports Excel et PDF.
@@ -90,6 +95,21 @@ Attention : ces commandes ne ciblent que les lignes marquées comme données de 
 - Journal d'activité.
 - Interface française/arabe avec support RTL pour l'arabe.
 - Thèmes sombre et clair.
+
+## Conventions et échéances
+
+Le module `Deadlines / Conventions` permet de suivre des conventions ou contrats avec des délais configurables, par exemple 60, 90, 120 jours ou un délai personnalisé.
+
+La date d'échéance est calculée automatiquement depuis la date de début. Les statuts sont recalculés selon les jours restants :
+
+- `active` : plus de 15 jours restants ;
+- `warning` : entre 1 et 15 jours restants ;
+- `expired` : échéance atteinte ou dépassée ;
+- `completed` : convention marquée comme terminée manuellement.
+
+Les alertes sont affichées dans les notifications et le tableau de bord quand une échéance est à 15 jours ou moins, 7 jours ou moins, 3 jours ou moins, ou expirée.
+
+Note : les délais sont configurables selon le type de convention et le dossier de l'entreprise. Ce module ne constitue pas un avis juridique ou fiscal.
 
 ## Sauvegarde
 

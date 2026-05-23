@@ -7,7 +7,7 @@ from app.services.user_service import UserService
 from app.ui.widgets.confirm_dialog import ConfirmDialog
 from app.ui.widgets.modern_button import ModernButton
 from app.ui.widgets.modern_table import ModernTable
-from config import ROLE_ACCOUNTANT, ROLE_ADMIN, ROLE_VIEWER
+from config import ROLE_ADMIN, ROLE_USER
 
 
 class UserDialog(QDialog):
@@ -21,8 +21,9 @@ class UserDialog(QDialog):
         self.full_name = QLineEdit()
         self.username = QLineEdit()
         self.email = QLineEdit()
+        self.phone = QLineEdit()
         self.role = QComboBox()
-        self.role.addItems([ROLE_ADMIN, ROLE_ACCOUNTANT, ROLE_VIEWER])
+        self.role.addItems([ROLE_ADMIN, ROLE_USER])
         self.password = QLineEdit()
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
         self.active = QCheckBox("Actif")
@@ -30,6 +31,7 @@ class UserDialog(QDialog):
         form.addRow("Nom complet *", self.full_name)
         form.addRow("Utilisateur *", self.username)
         form.addRow("Email", self.email)
+        form.addRow("Téléphone", self.phone)
         form.addRow("Rôle", self.role)
         form.addRow("Mot de passe" + (" *" if not user else ""), self.password)
         form.addRow("", self.active)
@@ -47,6 +49,7 @@ class UserDialog(QDialog):
             self.full_name.setText(user.full_name or "")
             self.username.setText(user.username or "")
             self.email.setText(user.email or "")
+            self.phone.setText(user.phone or "")
             idx = self.role.findText(user.role)
             if idx >= 0:
                 self.role.setCurrentIndex(idx)
@@ -59,8 +62,8 @@ class UserDialog(QDialog):
         if not self.user and not self.password.text():
             self.error.setText("Le mot de passe est obligatoire.")
             return
-        if self.password.text() and len(self.password.text()) < 6:
-            self.error.setText("Mot de passe faible: utilisez au moins 6 caractères.")
+        if self.password.text() and len(self.password.text()) < 8:
+            self.error.setText("Mot de passe faible: utilisez au moins 8 caractères.")
             return
         super().accept()
 
@@ -69,6 +72,7 @@ class UserDialog(QDialog):
             "full_name": self.full_name.text().strip(),
             "username": self.username.text().strip(),
             "email": self.email.text().strip() or None,
+            "phone": self.phone.text().strip() or None,
             "role": self.role.currentText(),
             "password": self.password.text(),
             "is_active": self.active.isChecked(),
@@ -97,7 +101,7 @@ class UsersPage(QWidget):
         top.addWidget(add)
         layout.addLayout(top)
         self.table = ModernTable()
-        self.table.set_headers(["ID", "Nom", "Utilisateur", "Email", "Rôle", "Actif", "Dernière connexion", "Actions"])
+        self.table.set_headers(["ID", "Nom", "Utilisateur", "Email", "Téléphone", "Rôle", "Actif", "Dernière connexion", "Actions"])
         layout.addWidget(self.table, 1)
         self.refresh()
 
@@ -105,7 +109,16 @@ class UsersPage(QWidget):
         self.users = UserService.list_users(self.search.text())
         self.table.setRowCount(len(self.users))
         for row, user in enumerate(self.users):
-            values = [user.id, user.full_name, user.username, user.email or "", user.role, "Oui" if user.is_active else "Non", user.last_login or ""]
+            values = [
+                user.id,
+                user.full_name,
+                user.username,
+                user.email or "",
+                user.phone or "",
+                user.role,
+                "Oui" if user.is_active else "Non",
+                user.last_login or "",
+            ]
             for col, value in enumerate(values):
                 self.table.set_text_item(row, col, value, align_right=col == 0)
             box = QWidget()
@@ -118,7 +131,7 @@ class UsersPage(QWidget):
             delete.clicked.connect(lambda _=False, uid=user.id: self.delete_user(uid))
             h.addWidget(edit)
             h.addWidget(delete)
-            self.table.setCellWidget(row, 7, box)
+            self.table.setCellWidget(row, 8, box)
 
     def add_user(self) -> None:
         dialog = UserDialog(parent=self)

@@ -18,6 +18,7 @@ class Sidebar(QWidget):
         ("suppliers", "◇", "Fournisseurs"),
         ("invoices", "▤", "Factures"),
         ("invoice_form", "+", "Ajouter facture"),
+        ("conventions", "◷", "Conventions"),
         ("reports", "↧", "Rapports"),
         ("import_excel", "⇪", "Import Excel"),
         ("users", "◉", "Utilisateurs"),

@@ -5,9 +5,10 @@ import re
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 
 from app.database.db import session_scope
+from app.models.convention_model import Convention
 from app.models.invoice_model import Invoice
 from app.models.log_model import ActivityLog
 from app.models.payment_model import Payment
@@ -15,12 +16,14 @@ from app.models.setting_model import Setting
 from app.models.supplier_model import Supplier
 from app.models.user_model import User
 from app.services.auth_service import AuthService
+from app.services.convention_service import ConventionService
 from config import (
     DATABASE_PATH,
     DEFAULT_ADMIN_EMAIL,
     DEFAULT_ADMIN_PASSWORD,
     DEFAULT_ADMIN_USERNAME,
     DEFAULT_SETTINGS,
+    LEGACY_DEFAULT_ADMIN_PASSWORDS,
     PAYMENT_METHODS,
     ROLE_ADMIN,
     STATUS_PAID,
@@ -32,6 +35,29 @@ from config import (
 
 DEMO_MARKER = "[DEMO_PLAST_ALUM]"
 DEMO_ATTACHMENT_PREFIX = "demo_plast_alum_invoice_"
+DEMO_CONVENTION_PREFIX = "DEMO-CONV-"
+
+
+def _email_is_available(session, user_id: int | None, email: str) -> bool:
+    query = session.query(User).filter(func.lower(User.email) == email.lower())
+    if user_id is not None:
+        query = query.filter(User.id != user_id)
+    return query.first() is None
+
+
+def _uses_legacy_default_password(user: User) -> bool:
+    return any(AuthService.verify_password(password, user.password_hash) for password in LEGACY_DEFAULT_ADMIN_PASSWORDS)
+
+
+def _apply_default_admin_credentials(session, user: User, reset_password: bool) -> None:
+    user.role = ROLE_ADMIN
+    user.is_active = True
+    if not user.full_name:
+        user.full_name = "Administrateur"
+    if (reset_password or not user.email) and _email_is_available(session, user.id, DEFAULT_ADMIN_EMAIL):
+        user.email = DEFAULT_ADMIN_EMAIL
+    if reset_password:
+        user.password_hash = AuthService.hash_password(DEFAULT_ADMIN_PASSWORD)
 
 
 def seed_defaults() -> None:
@@ -40,7 +66,26 @@ def seed_defaults() -> None:
             if not session.query(Setting).filter_by(key=key).first():
                 session.add(Setting(key=key, value=str(value)))
 
-        if not session.query(User).filter_by(username=DEFAULT_ADMIN_USERNAME).first():
+        admin = session.query(User).filter_by(role=ROLE_ADMIN).order_by(User.id.asc()).first()
+        username_admin = (
+            session.query(User)
+            .filter(func.lower(User.username) == DEFAULT_ADMIN_USERNAME.lower())
+            .first()
+        )
+        default_email_user = (
+            session.query(User)
+            .filter(func.lower(User.email) == DEFAULT_ADMIN_EMAIL.lower())
+            .first()
+        )
+
+        if admin:
+            is_default_admin = admin.username.lower() == DEFAULT_ADMIN_USERNAME.lower()
+            _apply_default_admin_credentials(session, admin, reset_password=is_default_admin and _uses_legacy_default_password(admin))
+        elif username_admin:
+            _apply_default_admin_credentials(session, username_admin, reset_password=True)
+        elif default_email_user:
+            _apply_default_admin_credentials(session, default_email_user, reset_password=True)
+        elif not admin:
             session.add(
                 User(
                     username=DEFAULT_ADMIN_USERNAME,
@@ -201,6 +246,36 @@ def _admin_user_id(session) -> int | None:
     return admin.id if admin else None
 
 
+def _seed_demo_conventions(session, today: date) -> int:
+    convention_samples = [
+        ("Alumex Maroc SARL", f"{DEMO_CONVENTION_PREFIX}060", "Convention commerciale", today - timedelta(days=21), 60, "Convention de test 60 jours."),
+        ("Casa Profil Aluminium", f"{DEMO_CONVENTION_PREFIX}090", "Convention fiscale", today - timedelta(days=35), 90, "Convention de test 90 jours."),
+        ("Atlas Anodisation Maroc", f"{DEMO_CONVENTION_PREFIX}120", "Accord cadre", today - timedelta(days=44), 120, "Convention de test 120 jours."),
+        ("Rabat Verre et Profiles", f"{DEMO_CONVENTION_PREFIX}EXP", "Contrat fournisseur", today - timedelta(days=95), 60, "Convention expirée pour tester les alertes."),
+        ("Tanger Metal Facades", f"{DEMO_CONVENTION_PREFIX}NEAR", "Convention fiscale", today - timedelta(days=56), 60, "Convention proche de l'échéance."),
+    ]
+    created = 0
+    for company, number, conv_type, start, days, notes in convention_samples:
+        if session.query(Convention).filter_by(convention_number=number).first():
+            continue
+        calculated = ConventionService.calculate(start, days)
+        session.add(
+            Convention(
+                company_name=company,
+                convention_number=number,
+                convention_type=conv_type,
+                start_date=calculated["start_date"],
+                deadline_days=calculated["deadline_days"],
+                due_date=calculated["due_date"],
+                remaining_days=calculated["remaining_days"],
+                status=calculated["status"],
+                notes=f"{DEMO_MARKER} {notes}",
+            )
+        )
+        created += 1
+    return created
+
+
 def _money(amount: float) -> float:
     return round(float(amount), 2)
 
@@ -258,14 +333,18 @@ def demo_data_exists() -> bool:
         return bool(
             session.query(Supplier.id).filter(_demo_supplier_filter()).first()
             or session.query(Invoice.id).filter(_demo_invoice_filter()).first()
+            or session.query(Convention.id).filter(Convention.convention_number.like(f"{DEMO_CONVENTION_PREFIX}%")).first()
         )
 
 
 def remove_demo_data(remove_files: bool = True) -> dict[str, int]:
     """Remove only rows marked as PLAST ALUM demo data."""
-    counts = {"suppliers": 0, "invoices": 0, "payments": 0, "activity_logs": 0, "attachments": 0}
+    counts = {"suppliers": 0, "invoices": 0, "payments": 0, "activity_logs": 0, "attachments": 0, "conventions": 0}
     attachment_paths: list[str] = []
     with session_scope() as session:
+        for convention in session.query(Convention).filter(Convention.convention_number.like(f"{DEMO_CONVENTION_PREFIX}%")).all():
+            session.delete(convention)
+            counts["conventions"] += 1
         invoice_ids = [row[0] for row in session.query(Invoice.id).filter(_demo_invoice_filter()).all()]
         for payment in session.query(Payment).filter(_demo_payment_filter(invoice_ids)).all():
             session.delete(payment)
@@ -301,12 +380,17 @@ def seed_demo_data(reset: bool = False) -> dict[str, int | bool]:
     if reset:
         remove_demo_data()
     elif demo_data_exists():
-        return {"created": False, "suppliers": 0, "invoices": 0, "payments": 0, "activity_logs": 0}
+        today = date.today()
+        with session_scope() as session:
+            conventions = _seed_demo_conventions(session, today)
+        return {"created": bool(conventions), "suppliers": 0, "invoices": 0, "payments": 0, "activity_logs": 0, "conventions": conventions}
 
     today = date.today()
-    counts: dict[str, int | bool] = {"created": True, "suppliers": 0, "invoices": 0, "payments": 0, "activity_logs": 0}
+    counts: dict[str, int | bool] = {"created": True, "suppliers": 0, "invoices": 0, "payments": 0, "activity_logs": 0, "conventions": 0}
     with session_scope() as session:
         admin_id = _admin_user_id(session)
+        counts["conventions"] = _seed_demo_conventions(session, today)
+
         created_suppliers: list[Supplier] = []
         for data in DEMO_SUPPLIERS:
             supplier = Supplier(

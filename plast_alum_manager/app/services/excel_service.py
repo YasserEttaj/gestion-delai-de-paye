@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+import unicodedata
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill
@@ -10,6 +11,8 @@ from openpyxl.utils import get_column_letter
 from app.database.db import session_scope
 from app.models.invoice_model import Invoice
 from app.models.supplier_model import Supplier
+from app.models.payment_model import Payment
+from app.services.deadline_service import DeadlineService
 from app.services.invoice_service import InvoiceService
 from app.services.log_service import LogService
 from config import EXPORT_DIR, STATUS_LABELS_FR, STATUS_PAID, STATUS_PARTIAL, STATUS_UNPAID
@@ -43,6 +46,22 @@ class ExcelService:
     }
 
     @staticmethod
+    def _normalize_status(value: object) -> str:
+        text = str(value or "Non payée").strip().lower()
+        text = unicodedata.normalize("NFKD", text)
+        text = "".join(char for char in text if not unicodedata.combining(char))
+        return text.replace("?", "e")
+
+    @staticmethod
+    def _clean_float(value, default: float = 0.0) -> float:
+        if value in (None, ""):
+            return default
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
     def _clean_date(value) -> str | None:
         if value in (None, ""):
             return None
@@ -54,7 +73,8 @@ class ExcelService:
                 return datetime.strptime(text, fmt).date().isoformat()
             except ValueError:
                 continue
-        return text
+        parsed = DeadlineService.parse_date(text)
+        return parsed.isoformat() if parsed else None
 
     @staticmethod
     def export_invoices(rows: list[dict], filename: str | None = None, user_id: int | None = None) -> Path:
@@ -144,6 +164,7 @@ class ExcelService:
                 (invoice.supplier_id, invoice.invoice_number.lower())
                 for invoice in session.query(Invoice).all()
             }
+            file_invoice_keys: set[tuple[str, str]] = set()
             for excel_row in range(2, ws.max_row + 1):
                 raw = {header: ws.cell(excel_row, idx + 1).value for header, idx in header_index.items()}
                 row_errors = []
@@ -160,13 +181,29 @@ class ExcelService:
                     row_errors.append("Date facture obligatoire")
                 try:
                     amount_ttc = float(amount_ttc if amount_ttc not in (None, "") else amount_ht)
+                    if amount_ttc <= 0:
+                        row_errors.append("Montant invalide")
                 except (TypeError, ValueError):
                     row_errors.append("Montant invalide")
                     amount_ttc = 0.0
                 supplier = suppliers.get(supplier_name.lower())
                 if supplier and (supplier.id, invoice_number.lower()) in duplicates:
                     row_errors.append("Doublon déjà existant")
-                status_text = str(raw.get("Statut") or "Non payée").strip().lower()
+                file_key = (supplier_name.lower(), invoice_number.lower())
+                if supplier_name and invoice_number:
+                    if file_key in file_invoice_keys:
+                        row_errors.append("Doublon dans le fichier")
+                    file_invoice_keys.add(file_key)
+                status_text = cls._normalize_status(raw.get("Statut"))
+                status = cls.STATUS_IMPORT.get(status_text, STATUS_UNPAID)
+                payment_date = cls._clean_date(raw.get("Date paiement"))
+                payment_method = str(raw.get("Mode paiement") or "").strip()
+                if status == STATUS_PAID and not payment_date:
+                    row_errors.append("Date paiement obligatoire pour une facture payée")
+                if status == STATUS_PAID and not payment_method:
+                    row_errors.append("Mode paiement obligatoire pour une facture payée")
+                amount_ht_value = cls._clean_float(raw.get("Montant HT"))
+                tva_rate_value = cls._clean_float(raw.get("TVA"), 20.0)
                 rows.append(
                     {
                         "line": excel_row,
@@ -175,12 +212,12 @@ class ExcelService:
                         "invoice_number": invoice_number,
                         "invoice_date": invoice_date,
                         "reception_date": cls._clean_date(raw.get("Date réception")),
-                        "amount_ht": float(raw.get("Montant HT") or 0),
-                        "tva_rate": float(raw.get("TVA") or 20),
+                        "amount_ht": amount_ht_value,
+                        "tva_rate": tva_rate_value,
                         "amount_ttc": float(amount_ttc),
-                        "status": cls.STATUS_IMPORT.get(status_text, STATUS_UNPAID),
-                        "payment_date": cls._clean_date(raw.get("Date paiement")),
-                        "payment_method": str(raw.get("Mode paiement") or ""),
+                        "status": status,
+                        "payment_date": payment_date,
+                        "payment_method": payment_method,
                         "notes": str(raw.get("Notes") or ""),
                         "errors": row_errors,
                     }
@@ -189,10 +226,13 @@ class ExcelService:
 
     @classmethod
     def import_valid_rows(cls, preview: dict, user_id: int | None, create_suppliers: bool = True) -> dict:
+        if preview.get("errors"):
+            raise ValueError("Le fichier Excel ne contient pas toutes les colonnes obligatoires.")
         imported = 0
         skipped = 0
         with session_scope() as session:
             suppliers = {supplier.name.lower(): supplier for supplier in session.query(Supplier).all()}
+            imported_keys: set[tuple[int, str]] = set()
             for row in preview.get("rows", []):
                 if row["errors"]:
                     skipped += 1
@@ -206,6 +246,14 @@ class ExcelService:
                 if not supplier:
                     skipped += 1
                     continue
+                duplicate = session.query(Invoice).filter(
+                    Invoice.supplier_id == supplier.id,
+                    Invoice.invoice_number == row["invoice_number"],
+                ).first()
+                import_key = (supplier.id, row["invoice_number"].lower())
+                if duplicate or import_key in imported_keys:
+                    skipped += 1
+                    continue
                 amount_ht = row["amount_ht"] or round(row["amount_ttc"] / (1 + row["tva_rate"] / 100), 2)
                 amount_tva = round(row["amount_ttc"] - amount_ht, 2)
                 invoice = Invoice(
@@ -213,6 +261,7 @@ class ExcelService:
                     invoice_number=row["invoice_number"],
                     invoice_date=row["invoice_date"],
                     reception_date=row["reception_date"],
+                    due_date=InvoiceService.default_due_date(row["invoice_date"], row["reception_date"]),
                     amount_ht=amount_ht,
                     tva_rate=row["tva_rate"],
                     amount_tva=amount_tva,
@@ -224,6 +273,19 @@ class ExcelService:
                     created_by=user_id,
                 )
                 session.add(invoice)
+                session.flush()
+                if row["status"] == STATUS_PAID:
+                    session.add(
+                        Payment(
+                            invoice_id=invoice.id,
+                            amount=row["amount_ttc"],
+                            payment_date=row["payment_date"],
+                            payment_method=row["payment_method"],
+                            reference="Import Excel",
+                            notes=row["notes"],
+                        )
+                    )
+                imported_keys.add(import_key)
                 imported += 1
             LogService.log(session, user_id, "Import Excel", "invoice", None, f"{imported} importées, {skipped} ignorées")
         return {"imported": imported, "skipped": skipped}

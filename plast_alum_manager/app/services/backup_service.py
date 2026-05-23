@@ -20,6 +20,12 @@ class BackupService:
     def create_backup(user_id: int | None = None, keep_last: int = 10) -> Path:
         if not DATABASE_PATH.exists():
             raise FileNotFoundError("Base de données introuvable.")
+        try:
+            keep_last = int(keep_last)
+        except (TypeError, ValueError):
+            keep_last = 10
+        if keep_last < 1:
+            keep_last = 10
         backup_dir = BackupService.backup_dir()
         backup_dir.mkdir(parents=True, exist_ok=True)
         path = backup_dir / f"database_backup_{datetime.now():%Y%m%d_%H%M%S}.sqlite"
@@ -38,6 +44,8 @@ class BackupService:
             raise FileNotFoundError("Fichier de sauvegarde introuvable.")
         if source.suffix.lower() != ".sqlite":
             raise ValueError("Veuillez choisir un fichier SQLite valide.")
+        if source.resolve() == DATABASE_PATH.resolve():
+            raise ValueError("La sauvegarde choisie est déjà la base active.")
         shutil.copy2(source, DATABASE_PATH)
         with session_scope() as session:
             LogService.log(session, user_id, "Restore backup", "database", None, str(source))
