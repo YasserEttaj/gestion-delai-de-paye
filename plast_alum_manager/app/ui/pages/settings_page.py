@@ -26,6 +26,11 @@ from app.ui.widgets.modern_button import ModernButton
 from config import USER_LOGO_PATH
 
 
+class NoWheelSpinBox(QSpinBox):
+    def wheelEvent(self, event) -> None:
+        event.ignore()
+
+
 class SettingsPage(QWidget):
     def __init__(self, user, parent=None) -> None:
         super().__init__(parent)
@@ -76,21 +81,21 @@ class SettingsPage(QWidget):
         self.logo_path = QLineEdit()
         self.backup_folder = QLineEdit()
         self.auto_backup = QCheckBox("Créer une sauvegarde à la fermeture")
-        self.keep = QSpinBox()
+        self.keep = NoWheelSpinBox()
         self.keep.setRange(1, 100)
-        self.high_unpaid = QSpinBox()
+        self.high_unpaid = NoWheelSpinBox()
         self.high_unpaid.setRange(0, 999999999)
-        self.normal_max = QSpinBox()
+        self.normal_max = NoWheelSpinBox()
         self.normal_max.setRange(1, 365)
-        self.attention_min = QSpinBox()
+        self.attention_min = NoWheelSpinBox()
         self.attention_min.setRange(1, 365)
-        self.attention_max = QSpinBox()
+        self.attention_max = NoWheelSpinBox()
         self.attention_max.setRange(1, 365)
-        self.urgent_min = QSpinBox()
+        self.urgent_min = NoWheelSpinBox()
         self.urgent_min.setRange(1, 365)
-        self.urgent_max = QSpinBox()
+        self.urgent_max = NoWheelSpinBox()
         self.urgent_max.setRange(1, 365)
-        self.critical_min = QSpinBox()
+        self.critical_min = NoWheelSpinBox()
         self.critical_min.setRange(1, 365)
 
         for field in (

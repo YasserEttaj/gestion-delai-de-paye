@@ -198,6 +198,11 @@ class MainWindow(QMainWindow):
         self.topbar.set_theme(theme)
         self.sidebar.refresh_icons()
         SettingsService.set_many({"default_theme": theme}, self.user.id)
+        page = self.stack.currentWidget()
+        refresh = getattr(page, "refresh", None)
+        if callable(refresh):
+            refresh()
+        self.retranslate_ui()
 
     def change_language(self, language: str) -> None:
         self.translator.set_language(language)

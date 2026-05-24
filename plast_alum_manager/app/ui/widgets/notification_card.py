@@ -30,9 +30,13 @@ class NotificationCard(QFrame):
         if theme == "light":
             background = "#FFFFFF"
             border = "#DDE5F0"
+            title_color = "#0F172A"
+            message_color = "#475569"
         else:
             background = "#111D31"
             border = "#2F3D55"
+            title_color = "#F8FAFC"
+            message_color = "#A8B4C7"
         self.setStyleSheet(
             f"""
             QFrame#NotificationCard {{
@@ -51,11 +55,11 @@ class NotificationCard(QFrame):
         icon_label.setFixedSize(18, 18)
         icon_label.setPixmap(app_icon(self.ICONS.get(level, "bell"), color, 18).pixmap(18, 18))
         self.title_label = QLabel(title)
-        self.title_label.setStyleSheet("font-weight:800;")
+        self.title_label.setStyleSheet(f"color:{title_color}; font-weight:800;")
         header.addWidget(icon_label)
         header.addWidget(self.title_label, 1, Qt.AlignmentFlag.AlignVCenter)
         self.message_label = QLabel(message)
-        self.message_label.setProperty("muted", True)
+        self.message_label.setStyleSheet(f"color:{message_color};")
         self.message_label.setWordWrap(True)
         layout.addLayout(header)
         layout.addWidget(self.message_label)
