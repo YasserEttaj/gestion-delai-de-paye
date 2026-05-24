@@ -1,167 +1,307 @@
 # TheCrownVibe - Gestion des Paiements Fournisseurs
 
-Application desktop interne pour gérer les fournisseurs, les factures, les délais de paiement, les alertes, les rapports et les exports Excel/PDF de TheCrownVibe.
+A PyQt6 desktop application for managing supplier invoices, payments, payment deadlines, conventions, reports, notifications, backups, and local users.
 
-## Installation
+The project is built for a local Windows workflow with a SQLite database and optional PyInstaller packaging.
 
-1. Installer Python 3.11 ou plus récent.
-2. Ouvrir PowerShell dans ce dossier.
-3. Installer les dépendances :
+## Features
+
+- Supplier management with ICE, IF, RC, contact, RIB, city, email, phone, and notes.
+- Invoice management with supplier links, invoice dates, reception dates, due dates, HT/TVA/TTC amounts, status, notes, and attachments.
+- Payment tracking for unpaid, partially paid, and paid invoices.
+- Deadline calculations with configurable warning levels.
+- Convention tracking with start dates, deadline days, due dates, remaining days, status, Excel export, and PDF export.
+- Dashboard metrics for suppliers, invoices, paid amounts, unpaid amounts, urgent invoices, and conventions.
+- In-app notifications for invoice deadlines, missing attachments, high unpaid amounts, supplier summaries, and conventions.
+- Optional desktop notifications through the system tray.
+- Excel import for invoice data and Excel export for reports.
+- PDF report generation.
+- Activity logs with filtering and export.
+- User management with admin and standard user roles.
+- Dark and light themes.
+- French and Arabic translation resources.
+- SQLite migrations, backup, and restore.
+- Windows executable build script and PyInstaller spec.
+
+## Requirements
+
+- Python 3.11 or newer
+- Windows is recommended for the packaged executable
+- The Python packages listed in `requirements.txt`
+
+Main dependencies:
+
+- `PyQt6`
+- `SQLAlchemy`
+- `bcrypt`
+- `openpyxl`
+- `reportlab`
+- `matplotlib`
+- `python-dateutil`
+- `Pillow`
+- `pyinstaller`
+
+## Quick Start
+
+From the repository root:
 
 ```powershell
+cd plast_alum_manager
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+python main.py
 ```
 
-4. Lancer l'application :
+You can also start the app from the repository root with:
 
 ```powershell
 python main.py
 ```
 
-## Premier lancement
+The root `main.py` adds `plast_alum_manager` to `sys.path` and runs the app entry point.
 
-La base SQLite locale est créée automatiquement dans `data/database.sqlite`.
+## Default Login
 
-Compte administrateur initial :
+On first launch, the app creates a local admin account if no admin user exists.
 
-- Utilisateur : `admin`
-- Email / identifiant : `admin@thecrownvibe.local`
-- Mot de passe : `admin123`
-- Rôle : `admin`
+| Field | Value |
+| --- | --- |
+| Username | `admin` |
+| Email | `admin@thecrownvibe.local` |
+| Password | `admin123` |
+| Role | `admin` |
 
-Vous pouvez vous connecter avec `admin` ou `admin@thecrownvibe.local` dans le champ utilisateur/email.
+Change the default password after the first login from the user management area.
 
-Après la première connexion, changez ce mot de passe depuis la page `Utilisateurs` : éditez le compte `admin`, saisissez un nouveau mot de passe, puis enregistrez.
+## Demo Data
 
-## Données de démonstration
+Demo data is optional and marked so it can be removed safely.
 
-Les données de démonstration sont uniquement destinées aux tests. Elles ne sont jamais insérées automatiquement au lancement normal de l'application.
-
-Pour remplir la base locale avec un jeu réaliste de fournisseurs, factures, paiements partiels, retards et alertes :
-
-```powershell
-python -m app.database.seed
-```
-
-Commande équivalente :
+Create or update demo data:
 
 ```powershell
 python seed_demo.py
 ```
 
-Le script ajoute des données marquées comme démo :
-
-- 10 fournisseurs marocains ;
-- 60 factures avec statuts payée, non payée et partiellement payée ;
-- factures en retard de plus de 40, 50 et 60 jours ;
-- paiements partiels ;
-- pièces jointes PDF de test pour certaines factures ;
-- journal d'activité de démonstration.
-
-Le script est sécurisé contre les doublons : si les données de démonstration existent déjà, il n'ajoute rien.
-
-Pour réinitialiser uniquement les données de démonstration :
+Equivalent module command:
 
 ```powershell
-python -m app.database.seed --reset-demo
+python -m app.database.seed --demo
 ```
 
-Pour les supprimer uniquement :
+Reset only demo data:
 
 ```powershell
-python -m app.database.seed --remove-demo
+python seed_demo.py --reset-demo --yes
 ```
 
-Ces commandes demandent une confirmation. Pour automatiser un test local :
+Remove only demo data:
 
 ```powershell
-python -m app.database.seed --reset-demo --yes
+python seed_demo.py --remove-demo --yes
 ```
 
-Attention : ces commandes ne ciblent que les lignes marquées comme données de démonstration. Ne les utilisez pas comme mécanisme de nettoyage de données réelles.
+The demo seed includes Moroccan suppliers, invoices, payments, PDF attachments, activity logs, and sample conventions.
 
-## Fonctionnalités
+## Runtime Data
 
-- Connexion sécurisée avec mots de passe hachés.
-- Gestion des rôles : `admin` et `user`.
-- Tableau de bord avec statistiques, alertes et graphiques.
-- Gestion complète des fournisseurs.
-- Gestion complète des factures et paiements partiels.
-- Suivi des conventions et échéances configurables avec alertes à 15, 7 et 3 jours.
-- Calcul automatique des catégories de délai : Normal, Attention, Urgent, Critique.
-- Import Excel avec prévisualisation et validation.
-- Exports Excel et PDF.
-- Sauvegarde/restauration de la base de données.
-- Journal d'activité.
-- Interface française/anglaise.
-- Thèmes sombre et clair.
+The app creates runtime folders automatically:
 
-## Conventions et échéances
+```text
+data/
+  database.sqlite
+  backups/
+  exports/
+  uploads/
+  assets/
+```
 
-Le module `Deadlines / Conventions` permet de suivre des conventions ou contrats avec des délais configurables, par exemple 60, 90, 120 jours ou un délai personnalisé.
+- `database.sqlite` stores the local SQLite database.
+- `backups/` stores database backups.
+- `exports/` stores generated Excel and PDF files.
+- `uploads/` stores copied invoice attachments.
+- `assets/` stores user-provided assets such as a custom logo.
 
-La date d'échéance est calculée automatiquement depuis la date de début. Les statuts sont recalculés selon les jours restants :
+When packaged with PyInstaller, the same `data` folder is kept beside the executable.
 
-- `active` : plus de 15 jours restants ;
-- `warning` : entre 1 et 15 jours restants ;
-- `expired` : échéance atteinte ou dépassée ;
-- `completed` : convention marquée comme terminée manuellement.
+## Project Structure
 
-Les alertes sont affichées dans les notifications et le tableau de bord quand une échéance est à 15 jours ou moins, 7 jours ou moins, 3 jours ou moins, ou expirée.
+```text
+plast_alum_manager/
+  main.py                         Application entry point
+  config.py                       Paths, app settings, roles, statuses
+  requirements.txt                Python dependencies
+  seed_demo.py                    Demo data command wrapper
+  build_windows.bat               Windows build script
+  create_desktop_shortcut.py      Desktop shortcut helper
+  the_crown_vibe_windows.spec     PyInstaller configuration
 
-Note : les délais sont configurables selon le type de convention et le dossier de l'entreprise. Ce module ne constitue pas un avis juridique ou fiscal.
+  app/
+    login_window.py               Login and registration UI
+    main_window.py                Main shell, navigation, notifications
 
-## Sauvegarde
+    database/
+      db.py                       SQLAlchemy engine/session setup
+      migrations.py               SQLite table creation and migrations
+      seed.py                     Defaults and demo data
 
-Les sauvegardes sont créées dans `data/backups`. Utilisez la page `Paramètres` pour créer ou restaurer une sauvegarde. L'application peut aussi créer une sauvegarde automatique à la fermeture.
+    models/
+      user_model.py               Users and roles
+      supplier_model.py           Suppliers
+      invoice_model.py            Invoices
+      payment_model.py            Payments
+      convention_model.py         Conventions
+      notification_state_model.py Notification state
+      log_model.py                Activity logs
+      setting_model.py            Settings
 
-## Exports
+    services/
+      auth_service.py             Authentication and permissions
+      supplier_service.py         Supplier business logic
+      invoice_service.py          Invoice and payment business logic
+      convention_service.py       Convention deadlines and exports
+      notification_service.py     Alert aggregation and delivery state
+      deadline_service.py         Invoice deadline categories
+      report_service.py           Report data aggregation
+      excel_service.py            Excel import and export
+      pdf_service.py              PDF report generation
+      backup_service.py           Database backup and restore
+      settings_service.py         App settings
+      translation_service.py      UI translations
+      activity_service.py         Activity log queries
+      user_service.py             User CRUD
 
-Les fichiers Excel et PDF sont enregistrés par défaut dans `data/exports`.
+    ui/
+      pages/                      Main application pages
+      widgets/                    Reusable UI widgets
+      icons.py                    Icon definitions
 
-## Construction d'un exécutable Windows
+    styles/
+      themes.py                   Theme application logic
+      dark.qss                    Dark stylesheet
+      light.qss                   Light stylesheet
 
-Le point d'entrée de l'application est détecté automatiquement par le script de build. Dans ce projet, le fichier principal est `main.py`.
+    translations/
+      fr.json                     French translations
+      ar.json                     Arabic translations
 
-Depuis le dossier `plast_alum_manager`, lancer :
+    assets/
+      icons/                      App icons
+      images/                     App images
+```
+
+## Configuration
+
+Default settings live in `config.py`.
+
+Important defaults:
+
+```python
+APP_NAME = "TheCrownVibe - Gestion des Paiements Fournisseurs"
+COMPANY_NAME = "TheCrownVibe"
+DEFAULT_ADMIN_USERNAME = "admin"
+DEFAULT_ADMIN_PASSWORD = "admin123"
+```
+
+Application settings are also stored in the SQLite database and can be edited from the Settings page. These include language, theme, currency, deadline thresholds, backup folder, notification behavior, and high unpaid amount threshold.
+
+## Permissions
+
+The app currently uses two normalized roles:
+
+- `admin`: can manage users, edit/delete records, import/export, and manage conventions.
+- `user`: standard access with restricted administrative actions.
+
+Legacy roles are migrated to the normalized roles during database initialization.
+
+## Build Windows Executable
+
+From `plast_alum_manager`:
 
 ```powershell
-build_windows.bat
+python -m pip install -r requirements.txt
+.\build_windows.bat
 ```
 
-Le script :
-
-- vérifie le fichier d'entrée `main.py` ;
-- installe PyInstaller si nécessaire ;
-- utilise le nom `TheCrownVibe - Gestion des Paiements Fournisseurs` ;
-- ajoute l'icône `app/assets/icons/app.ico` si elle existe ;
-- inclut les assets, thèmes QSS, traductions et `config.py` ;
-- crée les dossiers `data/backups`, `data/exports`, `data/uploads` et `data/assets` à côté de l'exécutable.
-
-L'exécutable sera généré ici :
+The executable is created at:
 
 ```text
 dist/TheCrownVibe - Gestion des Paiements Fournisseurs/TheCrownVibe - Gestion des Paiements Fournisseurs.exe
 ```
 
-## Raccourci bureau Windows
+Advanced PyInstaller build:
 
-Après le build, créer le raccourci bureau avec :
+```powershell
+python -m PyInstaller --noconfirm --clean the_crown_vibe_windows.spec
+```
+
+Create a desktop shortcut after building:
 
 ```powershell
 python create_desktop_shortcut.py
 ```
 
-Nom du raccourci :
-
-```text
-TheCrownVibe - Gestion des Paiements
-```
-
-Pour tester les chemins sans créer le raccourci :
+Preview the shortcut action without creating it:
 
 ```powershell
 python create_desktop_shortcut.py --dry-run
 ```
 
-Des instructions complémentaires sont disponibles dans `installer/build_instructions.md`.
+If Windows keeps showing an old icon after rebuilding:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\refresh_icon_cache.ps1
+```
+
+## Common Workflows
+
+Run the app:
+
+```powershell
+python main.py
+```
+
+Install or refresh dependencies:
+
+```powershell
+python -m pip install --upgrade -r requirements.txt
+```
+
+Reset the local database:
+
+```powershell
+Remove-Item .\data\database.sqlite
+python main.py
+```
+
+Only delete the database when you intentionally want to lose local data or you have a backup.
+
+## Troubleshooting
+
+If the application does not start:
+
+- Confirm that the virtual environment is active.
+- Reinstall dependencies from `requirements.txt`.
+- Check that `data/` is writable.
+- Delete `data/database.sqlite` only if you want a fresh local database.
+
+If exports fail:
+
+- Check that `data/exports/` is writable.
+- Make sure `openpyxl` and `reportlab` are installed.
+
+If attachments do not open:
+
+- Confirm the original file exists before adding it.
+- Supported attachment formats are PDF, JPG, JPEG, and PNG.
+
+If the packaged app has stale data:
+
+- Check the `data` folder beside the executable.
+- The build script preserves existing packaged data when possible.
+
+## Notes
+
+This is an internal desktop application. Keep generated runtime data, local databases, backups, uploaded files, and PyInstaller output out of source control unless there is a specific reason to archive them.

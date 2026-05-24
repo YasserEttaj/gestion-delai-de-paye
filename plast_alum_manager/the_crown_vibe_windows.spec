@@ -25,6 +25,8 @@ hiddenimports = [
     "app.models.payment_model",
     "app.models.log_model",
     "app.models.setting_model",
+    "app.models.notification_state_model",
+    "app.services.notification_service",
 ]
 
 a = Analysis(

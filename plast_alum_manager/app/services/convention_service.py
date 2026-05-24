@@ -266,6 +266,9 @@ class ConventionService:
                 label = "Échéance ≤ 15 jours"
             notes.append(
                 {
+                    "key": f"convention_deadline:{convention.id}",
+                    "source": "convention",
+                    "kind": "convention_deadline",
                     "level": level,
                     "title": label,
                     "message": f"{convention.company_name} - {convention.convention_number} - {convention.remaining_days} jour(s)",

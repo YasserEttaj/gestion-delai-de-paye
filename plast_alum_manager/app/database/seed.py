@@ -87,6 +87,14 @@ def seed_defaults() -> None:
             setting = session.query(Setting).filter_by(key=key).first()
             if setting and setting.value in legacy_values:
                 setting.value = str(DEFAULT_SETTINGS[key])
+        backup_setting = session.query(Setting).filter_by(key="backup_folder").first()
+        if backup_setting and backup_setting.value:
+            legacy_dist_names = (
+                "PLAST ALUM - Gestion des Paiements Fournisseurs",
+                "Yassbyte - Gestion des Paiements Fournisseurs",
+            )
+            if any(name in backup_setting.value for name in legacy_dist_names):
+                backup_setting.value = str(DEFAULT_SETTINGS["backup_folder"])
 
         admin = session.query(User).filter_by(role=ROLE_ADMIN).order_by(User.id.asc()).first()
         username_admin = (

@@ -80,7 +80,28 @@ class SettingsPage(QWidget):
         self.date_format = QLineEdit()
         self.logo_path = QLineEdit()
         self.backup_folder = QLineEdit()
-        self.auto_backup = QCheckBox("Créer une sauvegarde à la fermeture")
+        self.auto_backup = QCheckBox("Activée")
+        self.notifications_enabled = QCheckBox("Activé")
+        self.desktop_notifications = QCheckBox("Activées")
+        self.in_app_notifications = QCheckBox("Activées")
+        self.notify_invoices = QCheckBox("Activées")
+        self.notify_conventions = QCheckBox("Activées")
+        self.notify_missing_attachments = QCheckBox("Activées")
+        self.notify_high_amounts = QCheckBox("Activées")
+        self.notify_supplier_summaries = QCheckBox("Activées")
+        self.notification_min_level = QComboBox()
+        self.notification_min_level.addItem("Attention et plus", "attention")
+        self.notification_min_level.addItem("Urgent et critique", "urgent")
+        self.notification_min_level.addItem("Critique seulement", "critical")
+        self.notification_interval = NoWheelSpinBox()
+        self.notification_interval.setRange(1, 240)
+        self.notification_snooze = NoWheelSpinBox()
+        self.notification_snooze.setRange(5, 1440)
+        self.notification_repeat = NoWheelSpinBox()
+        self.notification_repeat.setRange(15, 1440)
+        self.quiet_hours = QCheckBox("Activées")
+        self.quiet_start = QLineEdit()
+        self.quiet_end = QLineEdit()
         self.keep = NoWheelSpinBox()
         self.keep.setRange(1, 100)
         self.high_unpaid = NoWheelSpinBox()
@@ -107,6 +128,12 @@ class SettingsPage(QWidget):
             self.date_format,
             self.logo_path,
             self.backup_folder,
+            self.notification_min_level,
+            self.notification_interval,
+            self.notification_snooze,
+            self.notification_repeat,
+            self.quiet_start,
+            self.quiet_end,
             self.keep,
             self.high_unpaid,
             self.normal_max,
@@ -121,6 +148,9 @@ class SettingsPage(QWidget):
 
         for spin in (
             self.keep,
+            self.notification_interval,
+            self.notification_snooze,
+            self.notification_repeat,
             self.high_unpaid,
             self.normal_max,
             self.attention_min,
@@ -150,9 +180,28 @@ class SettingsPage(QWidget):
         form.addRow("Format date", self.date_format)
         form.addRow("Logo", logo_widget)
         form.addRow("Dossier sauvegarde", self.backup_folder)
-        form.addRow("", self.auto_backup)
+        form.addRow("Sauvegarde auto", self.auto_backup)
         form.addRow("Sauvegardes à garder", self.keep)
         form.addRow("Alerte montant impayé", self.high_unpaid)
+        section = QLabel("Alertes et notifications")
+        section.setProperty("heading", True)
+        section.setStyleSheet("font-size: 17px;")
+        form.addRow(section)
+        form.addRow("Alertes", self.notifications_enabled)
+        form.addRow("Dans l'application", self.in_app_notifications)
+        form.addRow("Bureau Windows", self.desktop_notifications)
+        form.addRow("Factures", self.notify_invoices)
+        form.addRow("Conventions", self.notify_conventions)
+        form.addRow("Pièces jointes manquantes", self.notify_missing_attachments)
+        form.addRow("Montants élevés", self.notify_high_amounts)
+        form.addRow("Retards par fournisseur", self.notify_supplier_summaries)
+        form.addRow("Priorité minimale", self.notification_min_level)
+        form.addRow("Vérification alertes (min)", self.notification_interval)
+        form.addRow("Rappel après snooze (min)", self.notification_snooze)
+        form.addRow("Répéter notification bureau (min)", self.notification_repeat)
+        form.addRow("Heures silencieuses", self.quiet_hours)
+        form.addRow("Silence début", self.quiet_start)
+        form.addRow("Silence fin", self.quiet_end)
         form.addRow("Normal max jours", self.normal_max)
         form.addRow("Attention min", self.attention_min)
         form.addRow("Attention max", self.attention_max)
@@ -200,6 +249,21 @@ class SettingsPage(QWidget):
         self.auto_backup.setChecked(settings.get("auto_backup_on_close", "true") == "true")
         self.keep.setValue(as_int("auto_backup_keep", 10))
         self.high_unpaid.setValue(as_int("high_unpaid_amount", 50000))
+        self.notifications_enabled.setChecked(settings.get("notifications_enabled", "true") == "true")
+        self.desktop_notifications.setChecked(settings.get("desktop_notifications_enabled", "false") == "true")
+        self.in_app_notifications.setChecked(settings.get("in_app_notifications_enabled", "true") == "true")
+        self.notify_invoices.setChecked(settings.get("notify_invoices", "true") == "true")
+        self.notify_conventions.setChecked(settings.get("notify_conventions", "true") == "true")
+        self.notify_missing_attachments.setChecked(settings.get("notify_missing_attachments", "true") == "true")
+        self.notify_high_amounts.setChecked(settings.get("notify_high_amounts", "true") == "true")
+        self.notify_supplier_summaries.setChecked(settings.get("notify_supplier_summaries", "true") == "true")
+        self.notification_min_level.setCurrentIndex(max(self.notification_min_level.findData(settings.get("notification_min_level", "attention")), 0))
+        self.notification_interval.setValue(as_int("notification_check_interval_minutes", 5))
+        self.notification_snooze.setValue(as_int("notification_snooze_minutes", 60))
+        self.notification_repeat.setValue(as_int("notification_repeat_minutes", 180))
+        self.quiet_hours.setChecked(settings.get("notification_quiet_hours_enabled", "false") == "true")
+        self.quiet_start.setText(settings.get("notification_quiet_start", "22:00"))
+        self.quiet_end.setText(settings.get("notification_quiet_end", "07:00"))
         self.normal_max.setValue(as_int("normal_max_days", 40))
         self.attention_min.setValue(as_int("attention_min_days", 41))
         self.attention_max.setValue(as_int("attention_max_days", 49))
@@ -220,6 +284,21 @@ class SettingsPage(QWidget):
             "auto_backup_on_close": "true" if self.auto_backup.isChecked() else "false",
             "auto_backup_keep": str(self.keep.value()),
             "high_unpaid_amount": str(self.high_unpaid.value()),
+            "notifications_enabled": "true" if self.notifications_enabled.isChecked() else "false",
+            "desktop_notifications_enabled": "true" if self.desktop_notifications.isChecked() else "false",
+            "in_app_notifications_enabled": "true" if self.in_app_notifications.isChecked() else "false",
+            "notify_invoices": "true" if self.notify_invoices.isChecked() else "false",
+            "notify_conventions": "true" if self.notify_conventions.isChecked() else "false",
+            "notify_missing_attachments": "true" if self.notify_missing_attachments.isChecked() else "false",
+            "notify_high_amounts": "true" if self.notify_high_amounts.isChecked() else "false",
+            "notify_supplier_summaries": "true" if self.notify_supplier_summaries.isChecked() else "false",
+            "notification_min_level": self.notification_min_level.currentData(),
+            "notification_check_interval_minutes": str(self.notification_interval.value()),
+            "notification_snooze_minutes": str(self.notification_snooze.value()),
+            "notification_repeat_minutes": str(self.notification_repeat.value()),
+            "notification_quiet_hours_enabled": "true" if self.quiet_hours.isChecked() else "false",
+            "notification_quiet_start": self.quiet_start.text().strip() or "22:00",
+            "notification_quiet_end": self.quiet_end.text().strip() or "07:00",
             "normal_max_days": str(self.normal_max.value()),
             "attention_min_days": str(self.attention_min.value()),
             "attention_max_days": str(self.attention_max.value()),

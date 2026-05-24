@@ -60,6 +60,22 @@ DEFAULT_SETTINGS = {
     "auto_backup_on_close": "true",
     "auto_backup_keep": "10",
     "high_unpaid_amount": "50000",
+    "notifications_enabled": "true",
+    "notifications_permission": "ask",
+    "desktop_notifications_enabled": "false",
+    "in_app_notifications_enabled": "true",
+    "notify_invoices": "true",
+    "notify_conventions": "true",
+    "notify_missing_attachments": "true",
+    "notify_high_amounts": "true",
+    "notify_supplier_summaries": "true",
+    "notification_min_level": "attention",
+    "notification_check_interval_minutes": "5",
+    "notification_snooze_minutes": "60",
+    "notification_repeat_minutes": "180",
+    "notification_quiet_hours_enabled": "false",
+    "notification_quiet_start": "22:00",
+    "notification_quiet_end": "07:00",
 }
 
 

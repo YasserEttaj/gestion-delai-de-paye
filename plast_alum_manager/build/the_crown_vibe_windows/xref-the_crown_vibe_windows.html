@@ -31,10 +31,12 @@ imports:
  &#8226;   <a href="#app.models.convention_model">app.models.convention_model</a>
  &#8226;   <a href="#app.models.invoice_model">app.models.invoice_model</a>
  &#8226;   <a href="#app.models.log_model">app.models.log_model</a>
+ &#8226;   <a href="#app.models.notification_state_model">app.models.notification_state_model</a>
  &#8226;   <a href="#app.models.payment_model">app.models.payment_model</a>
  &#8226;   <a href="#app.models.setting_model">app.models.setting_model</a>
  &#8226;   <a href="#app.models.supplier_model">app.models.supplier_model</a>
  &#8226;   <a href="#app.models.user_model">app.models.user_model</a>
+ &#8226;   <a href="#app.services.notification_service">app.services.notification_service</a>
  &#8226;   <a href="#app.styles.themes">app.styles.themes</a>
  &#8226;   <a href="#codecs">codecs</a>
  &#8226;   <a href="#collections">collections</a>
@@ -2994,6 +2996,7 @@ imported by:
  &#8226;   <a href="#app.ui.widgets.modern_button">app.ui.widgets.modern_button</a>
  &#8226;   <a href="#app.ui.widgets.modern_table">app.ui.widgets.modern_table</a>
  &#8226;   <a href="#app.ui.widgets.notification_card">app.ui.widgets.notification_card</a>
+ &#8226;   <a href="#app.ui.widgets.notification_center">app.ui.widgets.notification_center</a>
  &#8226;   <a href="#app.ui.widgets.sidebar">app.ui.widgets.sidebar</a>
  &#8226;   <a href="#app.ui.widgets.stat_card">app.ui.widgets.stat_card</a>
  &#8226;   <a href="#app.ui.widgets.topbar">app.ui.widgets.topbar</a>
@@ -3098,6 +3101,7 @@ imported by:
  &#8226;   <a href="#app.ui.widgets.modern_button">app.ui.widgets.modern_button</a>
  &#8226;   <a href="#app.ui.widgets.modern_table">app.ui.widgets.modern_table</a>
  &#8226;   <a href="#app.ui.widgets.notification_card">app.ui.widgets.notification_card</a>
+ &#8226;   <a href="#app.ui.widgets.notification_center">app.ui.widgets.notification_center</a>
  &#8226;   <a href="#app.ui.widgets.sidebar">app.ui.widgets.sidebar</a>
  &#8226;   <a href="#app.ui.widgets.stat_card">app.ui.widgets.stat_card</a>
  &#8226;   <a href="#app.ui.widgets.toast_notification">app.ui.widgets.toast_notification</a>
@@ -3246,6 +3250,7 @@ imported by:
  &#8226;   <a href="#app.models.convention_model">app.models.convention_model</a>
  &#8226;   <a href="#app.models.invoice_model">app.models.invoice_model</a>
  &#8226;   <a href="#app.models.log_model">app.models.log_model</a>
+ &#8226;   <a href="#app.models.notification_state_model">app.models.notification_state_model</a>
  &#8226;   <a href="#app.models.payment_model">app.models.payment_model</a>
  &#8226;   <a href="#app.models.setting_model">app.models.setting_model</a>
  &#8226;   <a href="#app.models.supplier_model">app.models.supplier_model</a>
@@ -3258,6 +3263,7 @@ imported by:
  &#8226;   <a href="#app.services.excel_service">app.services.excel_service</a>
  &#8226;   <a href="#app.services.invoice_service">app.services.invoice_service</a>
  &#8226;   <a href="#app.services.log_service">app.services.log_service</a>
+ &#8226;   <a href="#app.services.notification_service">app.services.notification_service</a>
  &#8226;   <a href="#app.services.pdf_service">app.services.pdf_service</a>
  &#8226;   <a href="#app.services.report_service">app.services.report_service</a>
  &#8226;   <a href="#app.services.settings_service">app.services.settings_service</a>
@@ -3281,6 +3287,7 @@ imported by:
  &#8226;   <a href="#app.ui.widgets.modern_button">app.ui.widgets.modern_button</a>
  &#8226;   <a href="#app.ui.widgets.modern_table">app.ui.widgets.modern_table</a>
  &#8226;   <a href="#app.ui.widgets.notification_card">app.ui.widgets.notification_card</a>
+ &#8226;   <a href="#app.ui.widgets.notification_center">app.ui.widgets.notification_center</a>
  &#8226;   <a href="#app.ui.widgets.sidebar">app.ui.widgets.sidebar</a>
  &#8226;   <a href="#app.ui.widgets.stat_card">app.ui.widgets.stat_card</a>
  &#8226;   <a href="#app.ui.widgets.toast_notification">app.ui.widgets.toast_notification</a>
@@ -5763,6 +5770,7 @@ imported by:
  &#8226;   <a href="#app.models.convention_model">app.models.convention_model</a>
  &#8226;   <a href="#app.models.invoice_model">app.models.invoice_model</a>
  &#8226;   <a href="#app.models.log_model">app.models.log_model</a>
+ &#8226;   <a href="#app.models.notification_state_model">app.models.notification_state_model</a>
  &#8226;   <a href="#app.models.payment_model">app.models.payment_model</a>
  &#8226;   <a href="#app.models.setting_model">app.models.setting_model</a>
  &#8226;   <a href="#app.models.supplier_model">app.models.supplier_model</a>
@@ -5773,6 +5781,7 @@ imported by:
  &#8226;   <a href="#app.services.convention_service">app.services.convention_service</a>
  &#8226;   <a href="#app.services.excel_service">app.services.excel_service</a>
  &#8226;   <a href="#app.services.invoice_service">app.services.invoice_service</a>
+ &#8226;   <a href="#app.services.notification_service">app.services.notification_service</a>
  &#8226;   <a href="#app.services.pdf_service">app.services.pdf_service</a>
  &#8226;   <a href="#app.services.settings_service">app.services.settings_service</a>
  &#8226;   <a href="#app.services.supplier_service">app.services.supplier_service</a>
@@ -5794,6 +5803,7 @@ imports:
  &#8226;   <a href="#app.models.convention_model">app.models.convention_model</a>
  &#8226;   <a href="#app.models.invoice_model">app.models.invoice_model</a>
  &#8226;   <a href="#app.models.log_model">app.models.log_model</a>
+ &#8226;   <a href="#app.models.notification_state_model">app.models.notification_state_model</a>
  &#8226;   <a href="#app.models.payment_model">app.models.payment_model</a>
  &#8226;   <a href="#app.models.setting_model">app.models.setting_model</a>
  &#8226;   <a href="#app.models.supplier_model">app.models.supplier_model</a>
@@ -5893,6 +5903,7 @@ imports:
  &#8226;   <a href="#app.services.backup_service">app.services.backup_service</a>
  &#8226;   <a href="#app.services.convention_service">app.services.convention_service</a>
  &#8226;   <a href="#app.services.invoice_service">app.services.invoice_service</a>
+ &#8226;   <a href="#app.services.notification_service">app.services.notification_service</a>
  &#8226;   <a href="#app.services.settings_service">app.services.settings_service</a>
  &#8226;   <a href="#app.services.translation_service">app.services.translation_service</a>
  &#8226;   <a href="#app.styles.themes">app.styles.themes</a>
@@ -5906,6 +5917,7 @@ imports:
  &#8226;   <a href="#app.ui.pages.suppliers_page">app.ui.pages.suppliers_page</a>
  &#8226;   <a href="#app.ui.pages.users_page">app.ui.pages.users_page</a>
  &#8226;   <a href="#app.ui.widgets.modern_button">app.ui.widgets.modern_button</a>
+ &#8226;   <a href="#app.ui.widgets.notification_center">app.ui.widgets.notification_center</a>
  &#8226;   <a href="#app.ui.widgets.sidebar">app.ui.widgets.sidebar</a>
  &#8226;   <a href="#app.ui.widgets.topbar">app.ui.widgets.topbar</a>
  &#8226;   <a href="#config">config</a>
@@ -5928,6 +5940,7 @@ imports:
  &#8226;   <a href="#app.models.convention_model">app.models.convention_model</a>
  &#8226;   <a href="#app.models.invoice_model">app.models.invoice_model</a>
  &#8226;   <a href="#app.models.log_model">app.models.log_model</a>
+ &#8226;   <a href="#app.models.notification_state_model">app.models.notification_state_model</a>
  &#8226;   <a href="#app.models.payment_model">app.models.payment_model</a>
  &#8226;   <a href="#app.models.setting_model">app.models.setting_model</a>
  &#8226;   <a href="#app.models.supplier_model">app.models.supplier_model</a>
@@ -5942,6 +5955,7 @@ imported by:
  &#8226;   <a href="#app.models.convention_model">app.models.convention_model</a>
  &#8226;   <a href="#app.models.invoice_model">app.models.invoice_model</a>
  &#8226;   <a href="#app.models.log_model">app.models.log_model</a>
+ &#8226;   <a href="#app.models.notification_state_model">app.models.notification_state_model</a>
  &#8226;   <a href="#app.models.payment_model">app.models.payment_model</a>
  &#8226;   <a href="#app.models.setting_model">app.models.setting_model</a>
  &#8226;   <a href="#app.models.supplier_model">app.models.supplier_model</a>
@@ -6025,6 +6039,29 @@ imported by:
  &#8226;   <a href="#app.models">app.models</a>
  &#8226;   <a href="#app.services.activity_service">app.services.activity_service</a>
  &#8226;   <a href="#app.services.log_service">app.services.log_service</a>
+ &#8226;   <a href="#main.py">main.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="app.models.notification_state_model"></a>
+  <a target="code" href="///C:/Users/HP/Documents/PLAST-ALUM/plast_alum_manager/app/models/notification_state_model.py" type="text/plain"><tt>app.models.notification_state_model</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#app.database.db">app.database.db</a>
+ &#8226;   <a href="#app.models">app.models</a>
+ &#8226;   <a href="#datetime">datetime</a>
+ &#8226;   <a href="#sqlalchemy">sqlalchemy</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.database.migrations">app.database.migrations</a>
+ &#8226;   <a href="#app.models">app.models</a>
+ &#8226;   <a href="#app.services.notification_service">app.services.notification_service</a>
  &#8226;   <a href="#main.py">main.py</a>
 
   </div>
@@ -6155,6 +6192,7 @@ imported by:
  &#8226;   <a href="#app.services.excel_service">app.services.excel_service</a>
  &#8226;   <a href="#app.services.invoice_service">app.services.invoice_service</a>
  &#8226;   <a href="#app.services.log_service">app.services.log_service</a>
+ &#8226;   <a href="#app.services.notification_service">app.services.notification_service</a>
  &#8226;   <a href="#app.services.pdf_service">app.services.pdf_service</a>
  &#8226;   <a href="#app.services.report_service">app.services.report_service</a>
  &#8226;   <a href="#app.services.settings_service">app.services.settings_service</a>
@@ -6273,6 +6311,7 @@ imports:
 imported by:
     <a href="#app.database.seed">app.database.seed</a>
  &#8226;   <a href="#app.main_window">app.main_window</a>
+ &#8226;   <a href="#app.services.notification_service">app.services.notification_service</a>
  &#8226;   <a href="#app.ui.pages.conventions_page">app.ui.pages.conventions_page</a>
  &#8226;   <a href="#app.ui.pages.dashboard_page">app.ui.pages.dashboard_page</a>
 
@@ -6361,6 +6400,7 @@ imports:
 imported by:
     <a href="#app.main_window">app.main_window</a>
  &#8226;   <a href="#app.services.excel_service">app.services.excel_service</a>
+ &#8226;   <a href="#app.services.notification_service">app.services.notification_service</a>
  &#8226;   <a href="#app.services.report_service">app.services.report_service</a>
  &#8226;   <a href="#app.ui.pages.dashboard_page">app.ui.pages.dashboard_page</a>
  &#8226;   <a href="#app.ui.pages.invoices_page">app.ui.pages.invoices_page</a>
@@ -6391,6 +6431,30 @@ imported by:
  &#8226;   <a href="#app.services.settings_service">app.services.settings_service</a>
  &#8226;   <a href="#app.services.supplier_service">app.services.supplier_service</a>
  &#8226;   <a href="#app.services.user_service">app.services.user_service</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="app.services.notification_service"></a>
+  <a target="code" href="///C:/Users/HP/Documents/PLAST-ALUM/plast_alum_manager/app/services/notification_service.py" type="text/plain"><tt>app.services.notification_service</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#app.database.db">app.database.db</a>
+ &#8226;   <a href="#app.models.notification_state_model">app.models.notification_state_model</a>
+ &#8226;   <a href="#app.services">app.services</a>
+ &#8226;   <a href="#app.services.convention_service">app.services.convention_service</a>
+ &#8226;   <a href="#app.services.invoice_service">app.services.invoice_service</a>
+ &#8226;   <a href="#app.services.settings_service">app.services.settings_service</a>
+ &#8226;   <a href="#datetime">datetime</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.main_window">app.main_window</a>
+ &#8226;   <a href="#main.py">main.py</a>
 
   </div>
 
@@ -6464,6 +6528,7 @@ imported by:
  &#8226;   <a href="#app.main_window">app.main_window</a>
  &#8226;   <a href="#app.services.backup_service">app.services.backup_service</a>
  &#8226;   <a href="#app.services.invoice_service">app.services.invoice_service</a>
+ &#8226;   <a href="#app.services.notification_service">app.services.notification_service</a>
  &#8226;   <a href="#app.ui.pages.settings_page">app.ui.pages.settings_page</a>
 
   </div>
@@ -6629,6 +6694,7 @@ imported by:
  &#8226;   <a href="#app.ui.widgets.modern_button">app.ui.widgets.modern_button</a>
  &#8226;   <a href="#app.ui.widgets.modern_table">app.ui.widgets.modern_table</a>
  &#8226;   <a href="#app.ui.widgets.notification_card">app.ui.widgets.notification_card</a>
+ &#8226;   <a href="#app.ui.widgets.notification_center">app.ui.widgets.notification_center</a>
  &#8226;   <a href="#app.ui.widgets.sidebar">app.ui.widgets.sidebar</a>
  &#8226;   <a href="#app.ui.widgets.stat_card">app.ui.widgets.stat_card</a>
  &#8226;   <a href="#app.ui.widgets.topbar">app.ui.widgets.topbar</a>
@@ -6970,6 +7036,7 @@ imported by:
  &#8226;   <a href="#app.ui.widgets.modern_button">app.ui.widgets.modern_button</a>
  &#8226;   <a href="#app.ui.widgets.modern_table">app.ui.widgets.modern_table</a>
  &#8226;   <a href="#app.ui.widgets.notification_card">app.ui.widgets.notification_card</a>
+ &#8226;   <a href="#app.ui.widgets.notification_center">app.ui.widgets.notification_center</a>
  &#8226;   <a href="#app.ui.widgets.sidebar">app.ui.widgets.sidebar</a>
  &#8226;   <a href="#app.ui.widgets.stat_card">app.ui.widgets.stat_card</a>
  &#8226;   <a href="#app.ui.widgets.toast_notification">app.ui.widgets.toast_notification</a>
@@ -7030,6 +7097,7 @@ imported by:
  &#8226;   <a href="#app.ui.pages.settings_page">app.ui.pages.settings_page</a>
  &#8226;   <a href="#app.ui.pages.suppliers_page">app.ui.pages.suppliers_page</a>
  &#8226;   <a href="#app.ui.pages.users_page">app.ui.pages.users_page</a>
+ &#8226;   <a href="#app.ui.widgets.notification_center">app.ui.widgets.notification_center</a>
  &#8226;   <a href="#app.ui.widgets.sidebar">app.ui.widgets.sidebar</a>
  &#8226;   <a href="#app.ui.widgets.topbar">app.ui.widgets.topbar</a>
 
@@ -7078,6 +7146,27 @@ imports:
   <div class="import">
 imported by:
     <a href="#app.ui.pages.dashboard_page">app.ui.pages.dashboard_page</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="app.ui.widgets.notification_center"></a>
+  <a target="code" href="///C:/Users/HP/Documents/PLAST-ALUM/plast_alum_manager/app/ui/widgets/notification_center.py" type="text/plain"><tt>app.ui.widgets.notification_center</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#PyQt6.QtCore">PyQt6.QtCore</a>
+ &#8226;   <a href="#PyQt6.QtWidgets">PyQt6.QtWidgets</a>
+ &#8226;   <a href="#__future__">__future__</a>
+ &#8226;   <a href="#app.ui.icons">app.ui.icons</a>
+ &#8226;   <a href="#app.ui.widgets">app.ui.widgets</a>
+ &#8226;   <a href="#app.ui.widgets.modern_button">app.ui.widgets.modern_button</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#app.main_window">app.main_window</a>
 
   </div>
 
@@ -10427,6 +10516,7 @@ imported by:
  &#8226;   <a href="#app.models.convention_model">app.models.convention_model</a>
  &#8226;   <a href="#app.models.invoice_model">app.models.invoice_model</a>
  &#8226;   <a href="#app.models.log_model">app.models.log_model</a>
+ &#8226;   <a href="#app.models.notification_state_model">app.models.notification_state_model</a>
  &#8226;   <a href="#app.models.payment_model">app.models.payment_model</a>
  &#8226;   <a href="#app.models.supplier_model">app.models.supplier_model</a>
  &#8226;   <a href="#app.models.user_model">app.models.user_model</a>
@@ -10436,6 +10526,7 @@ imported by:
  &#8226;   <a href="#app.services.deadline_service">app.services.deadline_service</a>
  &#8226;   <a href="#app.services.excel_service">app.services.excel_service</a>
  &#8226;   <a href="#app.services.invoice_service">app.services.invoice_service</a>
+ &#8226;   <a href="#app.services.notification_service">app.services.notification_service</a>
  &#8226;   <a href="#app.services.pdf_service">app.services.pdf_service</a>
  &#8226;   <a href="#app.ui.pages.activity_logs_page">app.ui.pages.activity_logs_page</a>
  &#8226;   <a href="#app.ui.pages.conventions_page">app.ui.pages.conventions_page</a>
@@ -42824,6 +42915,7 @@ imported by:
  &#8226;   <a href="#app.models.convention_model">app.models.convention_model</a>
  &#8226;   <a href="#app.models.invoice_model">app.models.invoice_model</a>
  &#8226;   <a href="#app.models.log_model">app.models.log_model</a>
+ &#8226;   <a href="#app.models.notification_state_model">app.models.notification_state_model</a>
  &#8226;   <a href="#app.models.payment_model">app.models.payment_model</a>
  &#8226;   <a href="#app.models.setting_model">app.models.setting_model</a>
  &#8226;   <a href="#app.models.supplier_model">app.models.supplier_model</a>

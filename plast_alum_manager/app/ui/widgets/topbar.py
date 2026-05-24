@@ -9,6 +9,7 @@ from app.ui.icons import (
     BELL_ICON,
     COLOR_MUTED_DARK,
     COLOR_MUTED_LIGHT,
+    COLOR_WHITE,
     LANGUAGE_ICON,
     MOON_ICON,
     SEARCH_ICON,
@@ -130,6 +131,8 @@ class Topbar(QWidget):
         self.notification_count = count
         self.notification_button.setText(str(count))
         self.notification_button.setToolTip(f"{count} {self._text('notifications').lower()}")
+        self.notification_button.set_role("warning" if count else "secondary")
+        self._refresh_icons()
 
     def set_theme(self, theme: str) -> None:
         self.current_theme = "light" if theme == "light" else "dark"
@@ -157,5 +160,6 @@ class Topbar(QWidget):
         theme_icon = MOON_ICON if self.current_theme == "light" else SUN_ICON
         self.theme_button.setText(self._text("dark_mode") if self.current_theme == "light" else self._text("light_mode"))
         self.theme_button.set_app_icon(theme_icon, color, 17)
-        self.notification_button.set_app_icon(BELL_ICON, color, 17)
+        notification_color = COLOR_WHITE if self.notification_count else color
+        self.notification_button.set_app_icon(BELL_ICON, notification_color, 17)
         self.profile_icon.setPixmap(icon_pixmap(USER_ICON, color, 19))

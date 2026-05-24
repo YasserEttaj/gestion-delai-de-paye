@@ -402,29 +402,41 @@ class InvoiceService:
             if row["deadline"].days > 40:
                 notes.append(
                     {
+                        "key": f"invoice_deadline:{invoice.id}",
+                        "source": "invoice",
+                        "kind": "invoice_deadline",
                         "level": row["deadline"].category,
                         "title": f"Facture {invoice.invoice_number} à surveiller",
                         "message": f"{invoice.supplier.name} - {row['deadline'].days} jours - {row['outstanding_amount']:.2f} MAD",
                         "invoice_id": invoice.id,
+                        "supplier_id": invoice.supplier_id,
                     }
                 )
                 supplier_overdue[invoice.supplier_id] = supplier_overdue.get(invoice.supplier_id, 0) + 1
             if not invoice.attachment_path:
                 notes.append(
                     {
+                        "key": f"invoice_attachment:{invoice.id}",
+                        "source": "invoice",
+                        "kind": "missing_attachment",
                         "level": "attention",
                         "title": f"Pièce jointe manquante",
                         "message": f"Facture {invoice.invoice_number}",
                         "invoice_id": invoice.id,
+                        "supplier_id": invoice.supplier_id,
                     }
                 )
             if row["outstanding_amount"] >= high_amount:
                 notes.append(
                     {
+                        "key": f"invoice_high_amount:{invoice.id}",
+                        "source": "invoice",
+                        "kind": "high_amount",
                         "level": "critical",
                         "title": "Montant impayé élevé",
                         "message": f"{invoice.invoice_number} - {row['outstanding_amount']:.2f} MAD",
                         "invoice_id": invoice.id,
+                        "supplier_id": invoice.supplier_id,
                     }
                 )
         suppliers = {supplier.id: supplier.name for supplier in [row["supplier"] for row in rows]}
@@ -432,10 +444,14 @@ class InvoiceService:
             if count >= 2:
                 notes.append(
                     {
+                        "key": f"supplier_overdue:{supplier_id}",
+                        "source": "supplier",
+                        "kind": "supplier_summary",
                         "level": "critical",
                         "title": "Fournisseur avec plusieurs retards",
                         "message": f"{suppliers.get(supplier_id, 'Fournisseur')} - {count} factures",
                         "invoice_id": None,
+                        "supplier_id": supplier_id,
                     }
                 )
         return notes[:50]

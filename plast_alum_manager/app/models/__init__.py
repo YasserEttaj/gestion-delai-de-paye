@@ -7,6 +7,7 @@ relationships the same way as the full app bootstrap.
 from app.models.convention_model import Convention
 from app.models.invoice_model import Invoice
 from app.models.log_model import ActivityLog
+from app.models.notification_state_model import NotificationState
 from app.models.payment_model import Payment
 from app.models.setting_model import Setting
 from app.models.supplier_model import Supplier
@@ -16,6 +17,7 @@ __all__ = [
     "ActivityLog",
     "Convention",
     "Invoice",
+    "NotificationState",
     "Payment",
     "Setting",
     "Supplier",

@@ -5,7 +5,7 @@ from config import ROLE_ADMIN, ROLE_USER
 
 
 def initialize_database() -> None:
-    from app.models import convention_model, invoice_model, log_model, payment_model, setting_model, supplier_model, user_model  # noqa: F401
+    from app.models import convention_model, invoice_model, log_model, notification_state_model, payment_model, setting_model, supplier_model, user_model  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
     _migrate_users_table()
@@ -15,6 +15,7 @@ def initialize_database() -> None:
     _migrate_activity_logs_table()
     _migrate_settings_table()
     _migrate_conventions_table()
+    _migrate_notification_states_table()
 
 
 def _table_columns(table_name: str) -> set[str]:
@@ -170,6 +171,27 @@ def _migrate_conventions_table() -> None:
             "remaining_days": "INTEGER DEFAULT 0 NOT NULL",
             "status": "VARCHAR DEFAULT 'active' NOT NULL",
             "notes": "TEXT",
+            "created_at": "VARCHAR",
+            "updated_at": "VARCHAR",
+        },
+    )
+
+
+def _migrate_notification_states_table() -> None:
+    _add_columns(
+        "notification_states",
+        {
+            "user_id": "INTEGER",
+            "alert_key": "VARCHAR",
+            "level": "VARCHAR DEFAULT 'info' NOT NULL",
+            "title": "VARCHAR",
+            "message": "TEXT",
+            "source": "VARCHAR",
+            "read_at": "VARCHAR",
+            "dismissed_at": "VARCHAR",
+            "snoozed_until": "VARCHAR",
+            "last_delivered_at": "VARCHAR",
+            "delivery_count": "INTEGER DEFAULT 0 NOT NULL",
             "created_at": "VARCHAR",
             "updated_at": "VARCHAR",
         },

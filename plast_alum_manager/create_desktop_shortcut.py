@@ -22,6 +22,13 @@ def default_icon_path(project_dir: Path) -> Path:
     return project_dir / "app" / "assets" / "icons" / "app.ico"
 
 
+def icon_path_for_exe(project_dir: Path, exe_path: Path) -> Path:
+    exe_icon = exe_path.parent / "_internal" / "app" / "assets" / "icons" / "app.ico"
+    if exe_icon.exists():
+        return exe_icon
+    return default_icon_path(project_dir)
+
+
 def find_executable(project_dir: Path, explicit_path: str | None = None) -> Path:
     if explicit_path:
         path = Path(explicit_path).expanduser().resolve()
@@ -103,7 +110,7 @@ def main() -> int:
     project_dir = Path(__file__).resolve().parent
     exe_path = find_executable(project_dir, args.exe)
     shortcut_path = desktop_path() / f"{SHORTCUT_NAME}.lnk"
-    icon_path = default_icon_path(project_dir)
+    icon_path = icon_path_for_exe(project_dir, exe_path)
     create_shortcut(exe_path, shortcut_path, icon_path, args.dry_run)
     if not args.dry_run:
         desktop = desktop_path()
