@@ -1,6 +1,6 @@
-# PLAST ALUM - Gestion des Paiements Fournisseurs
+# TheCrownVibe - Gestion des Paiements Fournisseurs
 
-Application desktop interne pour gérer les fournisseurs, les factures, les délais de paiement, les alertes, les rapports et les exports Excel/PDF de PLAST ALUM.
+Application desktop interne pour gérer les fournisseurs, les factures, les délais de paiement, les alertes, les rapports et les exports Excel/PDF de TheCrownVibe.
 
 ## Installation
 
@@ -25,11 +25,11 @@ La base SQLite locale est créée automatiquement dans `data/database.sqlite`.
 Compte administrateur initial :
 
 - Utilisateur : `admin`
-- Email / identifiant : `admin@plast-alum.local`
+- Email / identifiant : `admin@thecrownvibe.local`
 - Mot de passe : `admin123`
 - Rôle : `admin`
 
-Vous pouvez vous connecter avec `admin` ou `admin@plast-alum.local` dans le champ utilisateur/email.
+Vous pouvez vous connecter avec `admin` ou `admin@thecrownvibe.local` dans le champ utilisateur/email.
 
 Après la première connexion, changez ce mot de passe depuis la page `Utilisateurs` : éditez le compte `admin`, saisissez un nouveau mot de passe, puis enregistrez.
 
@@ -93,7 +93,7 @@ Attention : ces commandes ne ciblent que les lignes marquées comme données de 
 - Exports Excel et PDF.
 - Sauvegarde/restauration de la base de données.
 - Journal d'activité.
-- Interface française/arabe avec support RTL pour l'arabe.
+- Interface française/anglaise.
 - Thèmes sombre et clair.
 
 ## Conventions et échéances
@@ -133,7 +133,7 @@ Le script :
 
 - vérifie le fichier d'entrée `main.py` ;
 - installe PyInstaller si nécessaire ;
-- utilise le nom `PLAST ALUM - Gestion des Paiements Fournisseurs` ;
+- utilise le nom `TheCrownVibe - Gestion des Paiements Fournisseurs` ;
 - ajoute l'icône `app/assets/icons/app.ico` si elle existe ;
 - inclut les assets, thèmes QSS, traductions et `config.py` ;
 - crée les dossiers `data/backups`, `data/exports`, `data/uploads` et `data/assets` à côté de l'exécutable.
@@ -141,7 +141,7 @@ Le script :
 L'exécutable sera généré ici :
 
 ```text
-dist/PLAST ALUM - Gestion des Paiements Fournisseurs/PLAST ALUM - Gestion des Paiements Fournisseurs.exe
+dist/TheCrownVibe - Gestion des Paiements Fournisseurs/TheCrownVibe - Gestion des Paiements Fournisseurs.exe
 ```
 
 ## Raccourci bureau Windows
@@ -155,7 +155,7 @@ python create_desktop_shortcut.py
 Nom du raccourci :
 
 ```text
-PLAST ALUM - Gestion des Paiements
+TheCrownVibe - Gestion des Paiements
 ```
 
 Pour tester les chemins sans créer le raccourci :

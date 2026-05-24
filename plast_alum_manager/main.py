@@ -11,7 +11,7 @@ from app.database.migrations import initialize_database
 from app.database.seed import seed_defaults
 from app.login_window import LoginWindow
 from app.styles.themes import apply_theme
-from config import APP_ICON_PATH, APP_NAME, ensure_directories
+from config import APP_ICON_PATH, APP_NAME, COMPANY_NAME, ensure_directories
 
 
 def bootstrap() -> None:
@@ -24,7 +24,7 @@ def main() -> int:
     bootstrap()
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
-    app.setOrganizationName("PLAST ALUM")
+    app.setOrganizationName(COMPANY_NAME)
     if APP_ICON_PATH.exists():
         app.setWindowIcon(QIcon(str(APP_ICON_PATH)))
     app.setAttribute(Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings, True)

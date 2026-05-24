@@ -8,7 +8,7 @@ from sqlalchemy import or_
 from app.database.db import session_scope
 from app.models.convention_model import Convention
 from app.services.log_service import LogService
-from config import EXPORT_DIR
+from config import COMPANY_NAME, EXPORT_DIR
 
 
 CONVENTION_STATUS_ACTIVE = "active"
@@ -333,7 +333,7 @@ class ConventionService:
         doc = SimpleDocTemplate(str(path), pagesize=landscape(A4), rightMargin=24, leftMargin=24, topMargin=24, bottomMargin=24)
         styles = getSampleStyleSheet()
         story = [
-            Paragraph("<b>PLAST ALUM</b>", styles["Title"]),
+            Paragraph(f"<b>{COMPANY_NAME}</b>", styles["Title"]),
             Paragraph("Suivi des conventions et échéances configurables", styles["Heading2"]),
             Paragraph(f"Exporté le {datetime.now():%d/%m/%Y %H:%M} par {user_name}", styles["Normal"]),
             Spacer(1, 12),

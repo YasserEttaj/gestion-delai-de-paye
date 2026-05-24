@@ -23,7 +23,7 @@ from app.ui.icons import (
     USERS_ICON,
 )
 from app.ui.widgets.modern_button import ModernButton
-from config import COMPANY_NAME, LOGO_PATH
+from config import APP_ABBREVIATION, COMPANY_NAME, LOGO_PATH
 
 
 class Sidebar(QWidget):
@@ -51,7 +51,7 @@ class Sidebar(QWidget):
         layout.setContentsMargins(18, 20, 18, 18)
         layout.setSpacing(8)
 
-        logo = QLabel(COMPANY_NAME)
+        logo = QLabel(APP_ABBREVIATION)
         if LOGO_PATH.exists():
             logo.setPixmap(QPixmap(str(LOGO_PATH)).scaledToWidth(175, Qt.TransformationMode.SmoothTransformation))
         else:

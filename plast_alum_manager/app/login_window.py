@@ -25,7 +25,7 @@ from app.services.translation_service import TranslationService
 from app.styles.themes import apply_theme
 from app.ui.icons import MOON_ICON, SUN_ICON
 from app.ui.widgets.modern_button import ModernButton
-from config import APP_ICON_PATH, APP_NAME, AUTH_IMAGE_PATH, COMPANY_NAME
+from config import APP_ABBREVIATION, APP_ICON_PATH, APP_NAME, AUTH_IMAGE_PATH, COMPANY_NAME
 
 
 class CoverImagePanel(QFrame):
@@ -96,7 +96,7 @@ class LoginWindow(QWidget):
     def __init__(self) -> None:
         super().__init__()
         self.settings = SettingsService.all()
-        self.local_settings = QSettings("PLAST ALUM", "Paiements Fournisseurs")
+        self.local_settings = QSettings(COMPANY_NAME, APP_ABBREVIATION)
         self.translator = TranslationService(self.settings.get("default_language", "fr"))
         self.theme = self.settings.get("default_theme", "dark")
         self.setObjectName("LoginRoot")

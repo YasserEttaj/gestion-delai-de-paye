@@ -10,7 +10,7 @@ build_windows.bat
 L'exécutable sera créé dans :
 
 ```text
-dist/PLAST ALUM - Gestion des Paiements Fournisseurs/PLAST ALUM - Gestion des Paiements Fournisseurs.exe
+dist/TheCrownVibe - Gestion des Paiements Fournisseurs/TheCrownVibe - Gestion des Paiements Fournisseurs.exe
 ```
 
 Le script détecte `main.py` comme fichier d'entrée, ajoute les dossiers `app/assets`, `app/styles`, `app/translations` et le fichier `config.py` au bundle PyInstaller. Si `app/assets/icons/app.ico` existe, il sera utilisé comme icône de l'exécutable.
@@ -28,7 +28,7 @@ Le fichier `.ico` contient les tailles Windows 16, 32, 48, 64, 128 et 256 px.
 La base de données locale est créée au premier lancement dans :
 
 ```text
-dist/PLAST ALUM - Gestion des Paiements Fournisseurs/data/database.sqlite
+dist/TheCrownVibe - Gestion des Paiements Fournisseurs/data/database.sqlite
 ```
 
 Les sauvegardes, exports, uploads et logos personnalisés restent dans le dossier `data` à côté de l'exécutable.
@@ -44,7 +44,7 @@ python create_desktop_shortcut.py
 Le raccourci créé sur le bureau s'appelle :
 
 ```text
-PLAST ALUM - Gestion des Paiements
+TheCrownVibe - Gestion des Paiements
 ```
 
 Pour vérifier sans créer le raccourci :
@@ -61,8 +61,8 @@ powershell -ExecutionPolicy Bypass -File .\refresh_icon_cache.ps1
 
 ## Build avancé avec fichier spec
 
-Un fichier `plast_alum_windows.spec` est fourni pour les builds PyInstaller avancés :
+Un fichier `the_crown_vibe_windows.spec` est fourni pour les builds PyInstaller avancés :
 
 ```powershell
-python -m PyInstaller --noconfirm --clean plast_alum_windows.spec
+python -m PyInstaller --noconfirm --clean the_crown_vibe_windows.spec
 ```

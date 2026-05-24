@@ -1,11 +1,15 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
-set "APP_NAME=PLAST ALUM - Gestion des Paiements Fournisseurs"
+set "APP_NAME=TheCrownVibe - Gestion des Paiements Fournisseurs"
+set "LEGACY_YASSBYTE_APP_NAME=Yassbyte - Gestion des Paiements Fournisseurs"
+set "LEGACY_PLAST_APP_NAME=PLAST ALUM - Gestion des Paiements Fournisseurs"
 set "PROJECT_DIR=%~dp0"
 set "DIST_DIR=dist\%APP_NAME%"
 set "DIST_DATA_DIR=%DIST_DIR%\data"
-set "DATA_BACKUP_DIR=%TEMP%\plast_alum_build_data_%RANDOM%%RANDOM%"
+set "LEGACY_YASSBYTE_DIST_DATA_DIR=dist\%LEGACY_YASSBYTE_APP_NAME%\data"
+set "LEGACY_PLAST_DIST_DATA_DIR=dist\%LEGACY_PLAST_APP_NAME%\data"
+set "DATA_BACKUP_DIR=%TEMP%\tcv_build_data_%RANDOM%%RANDOM%"
 set "HAS_DATA_BACKUP=0"
 cd /d "%PROJECT_DIR%"
 
@@ -41,10 +45,19 @@ if exist "app\assets\icons\app.ico" (
     echo [INFO] Aucune icone .ico detectee. Le build utilisera l'icone Windows par defaut.
 )
 
+set "SOURCE_DATA_DIR="
 if exist "%DIST_DATA_DIR%" (
-    echo [INFO] Conservation des donnees existantes: %DIST_DATA_DIR%
+    set "SOURCE_DATA_DIR=%DIST_DATA_DIR%"
+) else if exist "%LEGACY_YASSBYTE_DIST_DATA_DIR%" (
+    set "SOURCE_DATA_DIR=%LEGACY_YASSBYTE_DIST_DATA_DIR%"
+) else if exist "%LEGACY_PLAST_DIST_DATA_DIR%" (
+    set "SOURCE_DATA_DIR=%LEGACY_PLAST_DIST_DATA_DIR%"
+)
+
+if defined SOURCE_DATA_DIR (
+    echo [INFO] Conservation des donnees existantes: !SOURCE_DATA_DIR!
     mkdir "%DATA_BACKUP_DIR%" >nul 2>nul
-    xcopy "%DIST_DATA_DIR%\*" "%DATA_BACKUP_DIR%\" /E /I /Y >nul
+    xcopy "!SOURCE_DATA_DIR!\*" "%DATA_BACKUP_DIR%\" /E /I /Y >nul
     if errorlevel 1 (
         echo [ERREUR] Impossible de sauvegarder temporairement les donnees existantes.
         exit /b 1
@@ -53,12 +66,12 @@ if exist "%DIST_DATA_DIR%" (
 )
 
 echo [INFO] Generation de l'executable...
-if not exist "%PROJECT_DIR%plast_alum_windows.spec" (
-    echo [ERREUR] Fichier spec introuvable: %PROJECT_DIR%plast_alum_windows.spec
+if not exist "%PROJECT_DIR%the_crown_vibe_windows.spec" (
+    echo [ERREUR] Fichier spec introuvable: %PROJECT_DIR%the_crown_vibe_windows.spec
     exit /b 1
 )
 
-python -m PyInstaller --noconfirm "%PROJECT_DIR%plast_alum_windows.spec"
+python -m PyInstaller --noconfirm "%PROJECT_DIR%the_crown_vibe_windows.spec"
 
 if errorlevel 1 (
     echo.

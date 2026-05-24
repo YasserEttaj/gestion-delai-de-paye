@@ -23,6 +23,7 @@ from config import (
     DEFAULT_ADMIN_PASSWORD,
     DEFAULT_ADMIN_USERNAME,
     DEFAULT_SETTINGS,
+    LEGACY_DEFAULT_ADMIN_EMAILS,
     LEGACY_DEFAULT_ADMIN_PASSWORDS,
     PAYMENT_METHODS,
     ROLE_ADMIN,
@@ -33,8 +34,10 @@ from config import (
 )
 
 
-DEMO_MARKER = "[DEMO_PLAST_ALUM]"
-DEMO_ATTACHMENT_PREFIX = "demo_plast_alum_invoice_"
+DEMO_MARKER = "[DEMO_TCV]"
+DEMO_ATTACHMENT_PREFIX = "demo_tcv_invoice_"
+LEGACY_DEMO_MARKERS = ("[DEMO_YASSBYTE]", "[DEMO_PLAST_ALUM]")
+LEGACY_DEMO_ATTACHMENT_PREFIXES = ("demo_yassbyte_invoice_", "demo_plast_alum_invoice_")
 DEMO_CONVENTION_PREFIX = "DEMO-CONV-"
 
 
@@ -54,7 +57,8 @@ def _apply_default_admin_credentials(session, user: User, reset_password: bool) 
     user.is_active = True
     if not user.full_name:
         user.full_name = "Administrateur"
-    if (reset_password or not user.email) and _email_is_available(session, user.id, DEFAULT_ADMIN_EMAIL):
+    legacy_email = (user.email or "").lower() in {email.lower() for email in LEGACY_DEFAULT_ADMIN_EMAILS}
+    if (reset_password or not user.email or legacy_email) and _email_is_available(session, user.id, DEFAULT_ADMIN_EMAIL):
         user.email = DEFAULT_ADMIN_EMAIL
     if reset_password:
         user.password_hash = AuthService.hash_password(DEFAULT_ADMIN_PASSWORD)
@@ -65,6 +69,24 @@ def seed_defaults() -> None:
         for key, value in DEFAULT_SETTINGS.items():
             if not session.query(Setting).filter_by(key=key).first():
                 session.add(Setting(key=key, value=str(value)))
+        legacy_companies = {"PLAST" + " ALUM", "Yassbyte"}
+        legacy_titles = set()
+        for legacy_company in legacy_companies:
+            legacy_titles.update(
+                {
+                    legacy_company,
+                    f"{legacy_company} - Gestion des Paiements Fournisseurs",
+                    f"{legacy_company} - Supplier Payment Management",
+                }
+            )
+        for key, legacy_values in {
+            "company_name": legacy_companies,
+            "app_title": legacy_titles,
+            "company_abbreviation": {"PA", "PLAST", "YA", "YB"},
+        }.items():
+            setting = session.query(Setting).filter_by(key=key).first()
+            if setting and setting.value in legacy_values:
+                setting.value = str(DEFAULT_SETTINGS[key])
 
         admin = session.query(User).filter_by(role=ROLE_ADMIN).order_by(User.id.asc()).first()
         username_admin = (
@@ -222,20 +244,28 @@ DEMO_SUPPLIERS = [
 ]
 
 
+def _demo_markers() -> tuple[str, ...]:
+    return (DEMO_MARKER, *LEGACY_DEMO_MARKERS)
+
+
+def _demo_marker_filter(column):
+    return or_(*(column.like(f"%{marker}%") for marker in _demo_markers()))
+
+
 def _demo_supplier_filter():
-    return Supplier.notes.like(f"%{DEMO_MARKER}%")
+    return _demo_marker_filter(Supplier.notes)
 
 
 def _demo_invoice_filter():
-    return or_(Invoice.invoice_number.like("DEMO-%"), Invoice.notes.like(f"%{DEMO_MARKER}%"))
+    return or_(Invoice.invoice_number.like("DEMO-%"), _demo_marker_filter(Invoice.notes))
 
 
 def _demo_log_filter():
-    return ActivityLog.details.like(f"%{DEMO_MARKER}%")
+    return _demo_marker_filter(ActivityLog.details)
 
 
 def _demo_payment_filter(invoice_ids: list[int]):
-    own_payment = or_(Payment.notes.like(f"%{DEMO_MARKER}%"), Payment.reference.like("DEMO-%"))
+    own_payment = or_(_demo_marker_filter(Payment.notes), Payment.reference.like("DEMO-%"))
     if invoice_ids:
         return or_(Payment.invoice_id.in_(invoice_ids), own_payment)
     return own_payment
@@ -301,7 +331,7 @@ def _write_demo_pdf(path: Path, invoice_number: str) -> None:
         pdf = canvas.Canvas(str(path), pagesize=A4)
         pdf.setTitle(f"Demo {invoice_number}")
         pdf.setFont("Helvetica-Bold", 16)
-        pdf.drawString(72, 780, "PLAST ALUM - Piece jointe demo")
+        pdf.drawString(72, 780, "TheCrownVibe - Piece jointe demo")
         pdf.setFont("Helvetica", 11)
         pdf.drawString(72, 750, f"Facture: {invoice_number}")
         pdf.drawString(72, 730, "Document genere uniquement pour tester l'ouverture des pieces jointes.")
@@ -312,7 +342,7 @@ def _write_demo_pdf(path: Path, invoice_number: str) -> None:
         path.write_bytes(
             b"%PDF-1.4\n"
             b"1 0 obj<<>>endobj\n"
-            b"2 0 obj<< /Length 44 >>stream\nBT /F1 12 Tf 72 720 Td (PLAST ALUM demo invoice) Tj ET\nendstream endobj\n"
+            b"2 0 obj<< /Length 57 >>stream\nBT /F1 12 Tf 72 720 Td (TheCrownVibe demo invoice) Tj ET\nendstream endobj\n"
             b"3 0 obj<< /Type /Page /Parent 4 0 R /Contents 2 0 R >>endobj\n"
             b"4 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj\n"
             b"5 0 obj<< /Type /Catalog /Pages 4 0 R >>endobj\n"
@@ -338,7 +368,7 @@ def demo_data_exists() -> bool:
 
 
 def remove_demo_data(remove_files: bool = True) -> dict[str, int]:
-    """Remove only rows marked as PLAST ALUM demo data."""
+    """Remove only rows marked as TheCrownVibe demo data."""
     counts = {"suppliers": 0, "invoices": 0, "payments": 0, "activity_logs": 0, "attachments": 0, "conventions": 0}
     attachment_paths: list[str] = []
     with session_scope() as session:
@@ -369,7 +399,8 @@ def remove_demo_data(remove_files: bool = True) -> dict[str, int]:
                 resolved = path.resolve()
             except OSError:
                 continue
-            if resolved.parent == upload_root and resolved.name.startswith(DEMO_ATTACHMENT_PREFIX) and resolved.exists():
+            prefixes = (DEMO_ATTACHMENT_PREFIX, *LEGACY_DEMO_ATTACHMENT_PREFIXES)
+            if resolved.parent == upload_root and any(resolved.name.startswith(prefix) for prefix in prefixes) and resolved.exists():
                 resolved.unlink()
                 counts["attachments"] += 1
     return counts
@@ -552,7 +583,7 @@ def _print_summary(title: str, summary: dict[str, int | bool]) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Seed de données de démonstration PLAST ALUM.")
+    parser = argparse.ArgumentParser(description="Seed de données de démonstration TheCrownVibe.")
     parser.add_argument("--demo", action="store_true", help="Insérer les données de démonstration si elles n'existent pas déjà.")
     parser.add_argument("--reset-demo", action="store_true", help="Supprimer puis réinsérer uniquement les données de démonstration.")
     parser.add_argument("--remove-demo", action="store_true", help="Supprimer uniquement les données de démonstration.")

@@ -1,1 +1,1 @@
-"""PLAST ALUM supplier payment management application."""
+"""TheCrownVibe supplier payment management application."""

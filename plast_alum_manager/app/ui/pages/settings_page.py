@@ -23,7 +23,7 @@ from app.services.settings_service import SettingsService
 from app.ui.icons import BACKUP_ICON, FOLDER_OPEN_ICON, RESET_ICON, SAVE_ICON
 from app.ui.widgets.confirm_dialog import ConfirmDialog
 from app.ui.widgets.modern_button import ModernButton
-from config import USER_LOGO_PATH
+from config import APP_NAME, COMPANY_NAME, USER_LOGO_PATH
 
 
 class NoWheelSpinBox(QSpinBox):
@@ -188,8 +188,8 @@ class SettingsPage(QWidget):
             except (TypeError, ValueError):
                 return default
 
-        self.company_name.setText(settings.get("company_name", "PLAST ALUM"))
-        self.app_title.setText(settings.get("app_title", "PLAST ALUM"))
+        self.company_name.setText(settings.get("company_name", COMPANY_NAME))
+        self.app_title.setText(settings.get("app_title", APP_NAME))
         self.language.setCurrentIndex(max(self.language.findData(settings.get("default_language", "fr")), 0))
         self.theme.setCurrentIndex(max(self.theme.findData(settings.get("default_theme", "dark")), 0))
         self.currency.setCurrentText(settings.get("currency", "MAD"))
